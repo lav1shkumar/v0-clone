@@ -20,7 +20,16 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  tier      Tier     @default(FREE)
+  tokens    Int      @default(50)
+
   projects Project[]
+}
+
+enum Tier {
+  FREE
+  PRO
+  ENTERPRISE
 }
 
 model Project {

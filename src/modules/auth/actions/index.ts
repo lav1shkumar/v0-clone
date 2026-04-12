@@ -68,6 +68,8 @@ export const getUser = async () => {
                 email: true,
                 image: true,
                 clerkId: true,
+                tier: true,
+                tokens: true,
             }
         })
         return {

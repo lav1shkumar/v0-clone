@@ -20,14 +20,9 @@ const XTerminal = dynamic(() => import("@/components/project/terminal"), {
 interface ProjectViewProps {
   projectId: string;
   initialFiles: FileSystemTree;
-  message: string;
 }
 
-const ProjectView = ({
-  projectId,
-  initialFiles,
-  message,
-}: ProjectViewProps) => {
+const ProjectView = ({ projectId, initialFiles }: ProjectViewProps) => {
   const [webcontainer, setWebcontainer] = useState<WebContainer | null>(null);
   const [files, setFiles] = useState<FileSystemTree>(initialFiles);
   const [devServerUrl, setDevServerUrl] = useState<string | null>(null);
@@ -65,15 +60,15 @@ const ProjectView = ({
       body: JSON.stringify({ userPrompt, files: files }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      console.error("API error:", response.status, await response.text());
-      toast.error("Failed to update project pls refresh and try again");
+      toast.error(data.error);
       setIsProcessing(false);
       return;
     }
 
     try {
-      const data = await response.json();
       const { files: patches, summary } = data;
       console.log("Received patches:", patches);
       console.log("Received summary:", summary);
@@ -120,6 +115,7 @@ const ProjectView = ({
       }
       toast.success("Project updated successfully");
       setFiles(updatedFiles);
+      window.dispatchEvent(new CustomEvent("userUpdated"));
     } catch (e) {
       console.error("Failed to apply patches:", e);
     }

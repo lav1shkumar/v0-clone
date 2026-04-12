@@ -9,39 +9,35 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createProject } from "@/modules/updates";
 
-
 export default function Page() {
   const router = useRouter();
 
   const handleSubmit = async (message: string) => {
     try {
-      
       const newProject = await createProject(message);
-      
-      if(!newProject.success) {
+
+      if (!newProject.success) {
         toast.error(newProject.message);
         return;
       }
       toast.success(newProject.message);
-      
-      router.push(`/project/${newProject.project}`);
 
+      router.push(`/project/${newProject.project}`);
     } catch (error) {
       toast.error("Failed to start dev server");
     }
   };
 
-
   return (
-    <div className="flex flex-col justify-center items-center w-full px-4 py-8">
+    <div className="flex flex-col justify-center items-center w-full p-4">
       <div className="w-full max-w-5xl">
         <section className="space-y-8 flex flex-col items-center">
           <div className="flex flex-col items-center">
             <Image
-              src="/logo.svg"
+              src="/logo_large.svg"
               alt="Logo"
-              width={100}
-              height={100}
+              width={400}
+              height={400}
               className="dark:invert md:block hidden"
             />
           </div>
@@ -49,12 +45,12 @@ export default function Page() {
             Build something with❤️
           </h1>
 
-          <p className="text-center text-muted-foreground text-lg md:text-xl">
+          {/* <p className="text-center text-muted-foreground text-lg md:text-xl">
             Create and deploy AI agents with ease
-          </p>
+          </p> */}
 
           <div className="max-w-3xl w-full flex flex-col items-center gap-4">
-            <ProjectForm onSubmitMessage={handleSubmit}/>
+            <ProjectForm onSubmitMessage={handleSubmit} />
           </div>
         </section>
       </div>
