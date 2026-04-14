@@ -69,10 +69,18 @@ export async function POST(req: Request) {
 
     const messages = `USER REQUEST: ${userPrompt}\n\nCURRENT CODEBASE:\n${JSON.stringify(flatFiles)}`;
 
-    const result = await streamText({
-      model: vertex("gemini-3-flash-preview"),
+    const result = streamText({
+      model: vertex("gemini-3.1-pro-preview"),
       system: SYSTEM_PROMPT,
       prompt: messages,
+      maxOutputTokens: 8000,
+      providerOptions: {
+        vertex: {
+          thinkingConfig: {
+            thinkingLevel: "low",
+          },
+        },
+      },
 
       onFinish: async ({ finishReason }) => {
         if (finishReason === "stop") {
@@ -96,7 +104,7 @@ export async function POST(req: Request) {
         ...Object.fromEntries(response.headers.entries()),
         "X-Accel-Buffering": "no",
         "Cache-Control": "no-cache, no-transform",
-        "Connection": "keep-alive",
+        Connection: "keep-alive",
         "Content-Type": "text/plain; charset=utf-8",
       },
     });

@@ -33,6 +33,15 @@ interface ProjectViewProps {
   initialFiles: FileSystemTree;
 }
 
+const extractJson = (text: string) => {
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1) {
+    return text.substring(firstBrace, lastBrace + 1);
+  }
+  return text;
+};
+
 const ProjectView = ({ projectId, initialFiles }: ProjectViewProps) => {
   const [webcontainer, setWebcontainer] = useState<WebContainer | null>(null);
   const [files, setFiles] = useState<FileSystemTree>(initialFiles);
@@ -57,11 +66,12 @@ const ProjectView = ({ projectId, initialFiles }: ProjectViewProps) => {
       setIsProcessing(true);
       setCurrentStatus("Finalizing changes...");
       try {
-        const data = JSON.parse(resultText);
+        const jsonStr = extractJson(resultText);
+        const data = JSON.parse(jsonStr);
         const { files: patches, summary } = data;
 
-        console.log("Received patches:", patches);
-        console.log("Received summary:", summary);
+        // console.log("Received patches:", patches);
+        // console.log("Received summary:", summary);
 
         const updatedFiles = applyPatchesToTree(files, patches);
 
@@ -121,9 +131,7 @@ const ProjectView = ({ projectId, initialFiles }: ProjectViewProps) => {
   useEffect(() => {
     if (completion) {
       const allOps = [
-        ...completion.matchAll(
-          /"type":\s*"([^"]+)"[^]*?"path":\s*"([^"]+)"/g,
-        ),
+        ...completion.matchAll(/"type":\s*"([^"]+)"[^]*?"path":\s*"([^"]+)"/g),
       ];
 
       if (allOps.length > 0) {
@@ -171,7 +179,7 @@ const ProjectView = ({ projectId, initialFiles }: ProjectViewProps) => {
   const mountFiles = async () => {
     if (webcontainer && files) {
       await webcontainer.mount(files);
-      console.log("Mounted files");
+      // console.log("Mounted files");
     }
   };
 
@@ -190,7 +198,7 @@ const ProjectView = ({ projectId, initialFiles }: ProjectViewProps) => {
     setProcess(devProcess);
 
     webcontainer.on("server-ready", (port, url) => {
-      console.log("Server ready");
+      // console.log("Server ready");
       setDevServerUrl(url);
     });
   };
