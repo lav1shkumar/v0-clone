@@ -1,6 +1,5 @@
 "use client";
 
-
 import Image from "next/image";
 import ProjectForm from "@/components/home/project-form";
 import { useRouter } from "next/navigation";
@@ -30,7 +29,7 @@ export default function Page() {
   return (
     <div className="flex flex-col justify-center items-center w-full p-4">
       <div className="w-full max-w-5xl">
-        <section className="space-y-8 flex flex-col items-center">
+        <section className="flex flex-col items-center">
           <div className="flex flex-col items-center">
             <Image
               src="/logo_large.svg"
