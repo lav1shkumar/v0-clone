@@ -2,6 +2,23 @@
 import { getUser } from "../auth/actions";
 import db from "@/lib/db";
 import { MessageRole } from "@prisma/client";
+import { generateText } from "ai";
+import { vertex, LIGHT_MODEL } from "@/lib/ai";
+
+async function generateProjectName(prompt: string): Promise<string> {
+  try {
+    const { text } = await generateText({
+      model: vertex(LIGHT_MODEL),
+      system:
+        "You are a professional project naming assistant. Generate a short, catchy, 2-3 word project name based on the user's prompt. Do not use quotes, periods, or extra words. Just the name.",
+      prompt: `Prompt: ${prompt}`,
+    });
+    return text.trim() || "Untitled Project";
+  } catch (error) {
+    console.error("Failed to generate project name:", error);
+    return "Untitled Project";
+  }
+}
 
 export const createProject = async (message: string) => {
   try {
@@ -267,9 +284,11 @@ export default function Home() {
       },
     };
 
+    const projectName = await generateProjectName(message);
+
     const newProject = await db.project.create({
       data: {
-        name: "Untitled",
+        name: projectName,
         userId: user.user.id,
         files: initialFiles as unknown as string,
         messages: {

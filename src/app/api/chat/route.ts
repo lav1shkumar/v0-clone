@@ -4,22 +4,10 @@ import { globalRateLimiter } from "@/lib/rate-limit";
 import db from "@/lib/db";
 import { flattenTree } from "@/modules/helpers/normalize-tree";
 import { streamText } from "ai";
-import { google } from "@ai-sdk/google";
-import { createVertex } from "@ai-sdk/google-vertex";
+import { vertex, DEFAULT_MODEL } from "@/lib/ai";
 import { SYSTEM_PROMPT } from "@/prompt";
 
 export const maxDuration = 300;
-
-const vertex = createVertex({
-  project: process.env.GOOGLE_VERTEX_PROJECT,
-  location: process.env.GOOGLE_VERTEX_LOCATION,
-  googleAuthOptions: {
-    credentials: {
-      client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY,
-    },
-  },
-});
 
 export async function POST(req: Request) {
   try {
@@ -70,7 +58,7 @@ export async function POST(req: Request) {
     const messages = `USER REQUEST: ${userPrompt}\n\nCURRENT CODEBASE:\n${JSON.stringify(flatFiles)}`;
 
     const result = streamText({
-      model: vertex("gemini-3.1-pro-preview"),
+      model: vertex(DEFAULT_MODEL),
       system: SYSTEM_PROMPT,
       prompt: messages,
       maxOutputTokens: 8000,

@@ -6,6 +6,7 @@ import ProjectForm from "@/components/home/project-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createProject } from "@/modules/updates";
+import ProjectHistory from "@/components/home/project-history";
 
 export default function Page() {
   const router = useRouter();
@@ -47,8 +48,9 @@ export default function Page() {
             Create and deploy AI agents with ease
           </p> */}
 
-          <div className="max-w-3xl w-full flex flex-col items-center gap-4">
+          <div className="max-w-5xl w-full flex flex-col items-center gap-12 mt-12">
             <ProjectForm onSubmitMessage={handleSubmit} />
+            <ProjectHistory />
           </div>
         </section>
       </div>
