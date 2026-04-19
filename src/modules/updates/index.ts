@@ -336,11 +336,12 @@ export const getProjectById = async (id: string, userId: number) => {
   }
 };
 
-export const updateProjectFiles = async (id: string, files: string) => {
+export const updateProjectFiles = async (id: string, files: string, userId: number) => {
   try {
     const project = await db.project.update({
       where: {
         id,
+        userId: userId,
       },
       data: {
         files,
