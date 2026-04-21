@@ -4,7 +4,12 @@ import { globalRateLimiter } from "@/lib/rate-limit";
 import db from "@/lib/db";
 import { flattenTree } from "@/modules/helpers/normalize-tree";
 import { streamText } from "ai";
-import { vertex, DEFAULT_MODEL, VALID_MODEL_IDS, getModelTokenCost } from "@/lib/ai";
+import {
+  vertex,
+  DEFAULT_MODEL,
+  VALID_MODEL_IDS,
+  getModelTokenCost,
+} from "@/lib/ai";
 import { SYSTEM_PROMPT } from "@/prompt";
 
 export const maxDuration = 300;
@@ -44,13 +49,6 @@ export async function POST(req: Request) {
       );
     }
 
-    if (dbUser.tokens <= 0) {
-      return NextResponse.json(
-        { error: "Insufficient tokens", code: "OUT_OF_TOKENS" },
-        { status: 402 },
-      );
-    }
-
     const {
       prompt: userPrompt,
       files,
@@ -62,18 +60,32 @@ export async function POST(req: Request) {
         ? requestedModel
         : DEFAULT_MODEL;
 
-    const flatFiles = flattenTree(files);
-
-    const messages = `USER REQUEST: ${userPrompt}\n\nCURRENT CODEBASE:\n${JSON.stringify(flatFiles)}`;
-
     const tokenCost = getModelTokenCost(selectedModel);
 
-    if (dbUser.tokens < tokenCost) {
+    // Atomic token reservation
+    const reserveResult = await db.user.updateMany({
+      where: {
+        clerkId: userId,
+        tokens: { gte: tokenCost },
+      },
+      data: {
+        tokens: { decrement: tokenCost },
+      },
+    });
+
+    if (reserveResult.count === 0) {
       return NextResponse.json(
         { error: "Insufficient tokens", code: "OUT_OF_TOKENS" },
         { status: 402 },
       );
     }
+
+    console.log(
+      `Reserved ${tokenCost} tokens (${selectedModel}) for user ${userId}`,
+    );
+
+    const flatFiles = flattenTree(files);
+    const messages = `USER REQUEST: ${userPrompt}\n\nCURRENT CODEBASE:\n${JSON.stringify(flatFiles)}`;
 
     const result = streamText({
       model: vertex(selectedModel),
@@ -81,15 +93,21 @@ export async function POST(req: Request) {
       prompt: messages,
 
       onFinish: async ({ finishReason }) => {
-        if (finishReason === "stop") {
+        // Refund tokens if the generation did not complete successfully
+        if (finishReason !== "stop") {
           try {
             await db.user.update({
               where: { clerkId: userId },
-              data: { tokens: dbUser.tokens - tokenCost },
+              data: { tokens: { increment: tokenCost } },
             });
-            console.log(`Deducted ${tokenCost} tokens (${selectedModel}) from user ${userId}`);
+            console.log(
+              `Refunded ${tokenCost} tokens (${selectedModel}) to user ${userId} — finishReason: ${finishReason}`,
+            );
           } catch (dbError) {
-            console.error("Failed to deduct tokens after stream:", dbError);
+            console.error(
+              "Failed to refund tokens after non-billable stream:",
+              dbError,
+            );
           }
         }
       },

@@ -54,7 +54,7 @@ export default function PricingPage() {
             <span className="text-muted-foreground">/month</span>
           </div>
           <ul className="mt-8 space-y-4 flex-1">
-            <li className="flex items-center gap-2">✓ 20 Tokens</li>
+            <li className="flex items-center gap-2">✓ 50 Tokens</li>
             <li className="flex items-center gap-2">✓ Basic AI Access</li>
             <li className="flex items-center gap-2">✓ Community Support</li>
           </ul>

@@ -13,10 +13,7 @@ export default function XTerminal({ process }: { process: any }) {
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    
     if (!terminalRef.current || !process) return;
-
-    const isDark = resolvedTheme === "dark";
 
     const term = new Terminal({
       cursorBlink: true,
@@ -28,8 +25,8 @@ export default function XTerminal({ process }: { process: any }) {
       allowTransparency: true,
       theme: {
         background: "rgba(0,0,0,0)",
-        foreground: isDark ? "#e4e4e7" : "#18181b",
-        cursor: isDark ? "#e4e4e7" : "#18181b",
+        foreground: "#e4e4e7",
+        cursor: "#e4e4e7",
       },
     });
 
@@ -41,9 +38,7 @@ export default function XTerminal({ process }: { process: any }) {
     term.open(terminalRef.current);
     fitAddon.fit();
 
-
     term.focus();
-
 
     try {
       if (!process.output.locked) {
@@ -72,20 +67,20 @@ export default function XTerminal({ process }: { process: any }) {
       writer?.write(input);
     });
 
-
-    terminalRef.current.addEventListener("click", () => {
-      term.focus();
-    });
+    const el = terminalRef.current;
+    const handleClick = () => term.focus();
+    el.addEventListener("click", handleClick);
 
     const resizeObserver = new ResizeObserver(() => {
       fitAddon.fit();
     });
 
-    resizeObserver.observe(terminalRef.current);
+    resizeObserver.observe(el);
 
     return () => {
       termRef.current = null;
-      writer.releaseLock();
+      writer?.releaseLock();
+      el.removeEventListener("click", handleClick);
       resizeObserver.disconnect();
       term.dispose();
     };

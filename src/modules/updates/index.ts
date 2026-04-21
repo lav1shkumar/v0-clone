@@ -322,6 +322,14 @@ export const getProjectById = async (id: string, userId: number) => {
         userId: userId,
       },
     });
+
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
     return {
       success: true,
       message: "Project found successfully",
@@ -331,12 +339,16 @@ export const getProjectById = async (id: string, userId: number) => {
     console.log(error);
     return {
       success: false,
-      message: "Project not found",
+      message: "Error fetching project",
     };
   }
 };
 
-export const updateProjectFiles = async (id: string, files: string, userId: number) => {
+export const updateProjectFiles = async (
+  id: string,
+  files: string,
+  userId: number,
+) => {
   try {
     const project = await db.project.update({
       where: {
