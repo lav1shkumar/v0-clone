@@ -32,7 +32,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 w-full max-w-6xl mx-auto min-h-screen">
+    <div className="flex flex-col items-center justify-center p-8 w-full max-w-6xl mx-auto">
       <div className="text-center space-y-4 mb-16">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
           Simple, transparent pricing
