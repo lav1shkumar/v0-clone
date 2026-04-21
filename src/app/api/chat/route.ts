@@ -16,13 +16,14 @@ export const maxDuration = 300;
 
 export async function POST(req: Request) {
   try {
-    const forwardedFor = req.headers.get("x-forwarded-for");
-    const ip = forwardedFor
-      ? (forwardedFor.split(",")[0] ?? "127.0.0.1")
-      : "127.0.0.1";
+    const ip =
+      req.headers.get("cf-connecting-ip") ??
+      req.headers.get("x-real-ip") ??
+      req.headers.get("x-forwarded-for")?.split(",")[0] ??
+      "127.0.0.1";
 
     try {
-      await globalRateLimiter.check(5, ip);
+      await globalRateLimiter.check(10, ip);
     } catch {
       return NextResponse.json(
         { error: "Too Many Requests", code: "TOO_MANY_REQUESTS" },
