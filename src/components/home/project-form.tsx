@@ -19,7 +19,7 @@ const formSchema = z.object({
   content: z
     .string()
     .min(1, "Project Discription Required!")
-    .max(500, "Description is too long"),
+    .max(2500, "Description is too long"),
 });
 
 const PROJECT_TEMPLATES = [
@@ -80,7 +80,9 @@ interface ProjectFormProps {
 const ProjectForm = ({ onSubmitMessage }: ProjectFormProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AIModelId>(DEFAULT_MODEL as AIModelId);
+  const [selectedModel, setSelectedModel] = useState<AIModelId>(
+    DEFAULT_MODEL as AIModelId,
+  );
 
   const router = useRouter();
 
@@ -185,7 +187,7 @@ const ProjectForm = ({ onSubmitMessage }: ProjectFormProps) => {
                 disabled={isPending}
               />
               <span className="text-xs text-muted-foreground">
-                {content.length}/500 characters
+                {content.length}/2500 characters
               </span>
             </div>
 
