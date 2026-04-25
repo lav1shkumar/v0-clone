@@ -12,13 +12,11 @@ export async function POST(req: Request) {
 
     const { tier } = await req.json();
 
-    let tokens = 50;
-    if (tier === "PRO") {
-      tokens = 250;
-    } else if (tier === "ENTERPRISE") {
-      tokens = 1000;
+    if (tier !== "FREE") {
+      return new NextResponse("Invalid request for this endpoint", { status: 400 });
     }
 
+    const tokens = 50;
     const updatedUser = await db.user.update({
       where: { clerkId: userId },
       data: {

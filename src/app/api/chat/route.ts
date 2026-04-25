@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
+import { google } from "@ai-sdk/google";
 import { auth } from "@clerk/nextjs/server";
 import { globalRateLimiter } from "@/lib/rate-limit";
 import db from "@/lib/db";
 import { flattenTree } from "@/modules/helpers/normalize-tree";
 import { streamText } from "ai";
+import { SYSTEM_PROMPT } from "@/prompt";
 import {
-  vertex,
   DEFAULT_MODEL,
   VALID_MODEL_IDS,
   getModelTokenCost,
-} from "@/lib/ai";
-import { SYSTEM_PROMPT } from "@/prompt";
+} from "@/lib/ai-models";
 
 export const maxDuration = 300;
 
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
     const messages = `USER REQUEST: ${userPrompt}\n\nCURRENT CODEBASE:\n${JSON.stringify(flatFiles)}`;
 
     const result = streamText({
-      model: vertex(selectedModel),
+      model: google(selectedModel),
       system: SYSTEM_PROMPT,
       prompt: messages,
 

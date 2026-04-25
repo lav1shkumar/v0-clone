@@ -24,6 +24,7 @@ model User {
   tokens    Int      @default(50)
 
   projects Project[]
+  payments Payment[]
 }
 
 enum Tier {
@@ -62,3 +63,19 @@ model Message {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
+
+model Payment {
+  id              String   @id @default(cuid())
+  razorpayOrderId String   @unique
+  razorpayPaymentId String?
+  amount          Int
+  currency        String   @default("INR")
+  tier            String
+  status          String   @default("created")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userId          Int
+  user            User @relation(fields: [userId], references: [id],onDelete: Cascade)
+}
+

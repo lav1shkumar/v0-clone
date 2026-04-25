@@ -1,5 +1,5 @@
 {
-  "name": "v0",
+  "name": "promptly",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -34,6 +34,7 @@
     "pg": "^8.20.0",
     "prisma": "^7.5.0",
     "radix-ui": "^1.4.3",
+    "razorpay": "^2.9.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.2",

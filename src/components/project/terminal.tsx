@@ -6,8 +6,13 @@ import { FitAddon } from "@xterm/addon-fit";
 import "xterm/css/xterm.css";
 import { Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import type { WebContainerProcess } from "@webcontainer/api";
 
-export default function XTerminal({ process }: { process: any }) {
+export default function XTerminal({
+  process,
+}: {
+  process: WebContainerProcess | null;
+}) {
   const terminalRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
   const { resolvedTheme } = useTheme();
@@ -47,7 +52,7 @@ export default function XTerminal({ process }: { process: any }) {
             write(data) {
               term.write(data);
             },
-          })
+          }),
         );
       }
     } catch (e) {
@@ -88,7 +93,7 @@ export default function XTerminal({ process }: { process: any }) {
 
   useEffect(() => {
     if (!termRef.current) return;
-    
+
     const isDark = resolvedTheme === "dark";
 
     termRef.current.options.theme = {
@@ -106,10 +111,5 @@ export default function XTerminal({ process }: { process: any }) {
     );
   }
 
-  return (
-    <div
-      ref={terminalRef}
-      className="w-full h-full p-1 rounded-md"
-    />
-  );
+  return <div ref={terminalRef} className="w-full h-full p-1 rounded-md" />;
 }

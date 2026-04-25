@@ -5,11 +5,19 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/modules/auth/actions";
+import Script from "next/script";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export default function PricingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [currentTier, setCurrentTier] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     getUser().then((res) => {
@@ -19,33 +27,111 @@ export default function PricingPage() {
     });
   }, []);
 
+  const handlePayment = (tier: string): Promise<boolean> => {
+    return new Promise(async (resolve) => {
+      if (currentTier === tier) {
+        toast.error("Already on this plan");
+        resolve(false);
+        return;
+      }
+      if (!ready || !window.Razorpay) {
+        toast.warning("Please wait for the page to load");
+        resolve(false);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/payment/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tier: tier,
+          }),
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+          toast.error(data.error || "Failed to create order");
+          resolve(false);
+          return;
+        }
+
+        const order = data.order;
+
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+          amount: order.amount,
+          currency: order.currency,
+          order_id: order.id,
+
+          handler: async function (response: any) {
+            console.log("PAYMENT SUCCESS:", response);
+
+            const verfiyRes = await fetch("/api/payment/verify", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(response),
+            });
+            if (verfiyRes.ok) {
+              resolve(true);
+            } else {
+              toast.error("Payment verification failed");
+              resolve(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              resolve(false);
+            },
+          },
+          theme: {
+            color: "#000000",
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } catch (error) {
+        console.error("Payment failed:", error);
+        toast.error("Payment initialization failed");
+        resolve(false);
+      }
+    });
+  };
+
   const handleUpgrade = async (tier: string) => {
     setLoading(tier);
     try {
-      const res = await fetch("/api/upgrade", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
-      });
+      if (tier === "FREE") {
+        const res = await fetch("/api/upgrade", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tier }),
+        });
 
-      if (!res.ok) {
-        throw new Error("Failed to upgrade");
+        if (!res.ok) throw new Error("Failed to downgrade");
+        toast.success("Successfully downgraded to Free plan");
+      } else {
+        const paymentSuccess = await handlePayment(tier);
+        if (!paymentSuccess) {
+          setLoading(null);
+          return;
+        }
+
+        const label = tier.charAt(0) + tier.slice(1).toLowerCase();
+        toast.success(`Successfully upgraded to ${label}`);
       }
 
-      const label = tier.charAt(0) + tier.slice(1).toLowerCase();
-      toast.success(
-        tier === "FREE"
-          ? `Downgraded to ${label}`
-          : `Successfully upgraded to ${label}`,
-      );
       setCurrentTier(tier);
-
       window.dispatchEvent(new Event("userUpdated"));
-
       router.refresh();
     } catch (error) {
       console.error("Upgrade failed:", error);
-      toast.error("Failed to upgrade tier");
+      toast.error("Failed to update plan");
     } finally {
       setLoading(null);
     }
@@ -53,6 +139,11 @@ export default function PricingPage() {
 
   return (
     <div className="flex flex-col items-center justify-center p-8 w-full max-w-6xl mx-auto">
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+        onLoad={() => setReady(true)}
+      />
       <div className="text-center space-y-4 mb-16">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
           Simple, transparent pricing
@@ -70,7 +161,7 @@ export default function PricingPage() {
             Perfect for getting started.
           </div>
           <div className="mt-8">
-            <span className="text-5xl font-bold">$0</span>
+            <span className="text-5xl font-bold">₹0</span>
             <span className="text-muted-foreground">/month</span>
           </div>
           <ul className="mt-8 space-y-4 flex-1">
@@ -104,7 +195,7 @@ export default function PricingPage() {
             For serious builders and makers.
           </div>
           <div className="mt-8">
-            <span className="text-5xl font-bold">$15</span>
+            <span className="text-5xl font-bold">₹999</span>
             <span className="opacity-80">/month</span>
           </div>
           <ul className="mt-8 space-y-4 flex-1">
@@ -136,7 +227,7 @@ export default function PricingPage() {
             For teams needing scale.
           </div>
           <div className="mt-8">
-            <span className="text-5xl font-bold">$49</span>
+            <span className="text-5xl font-bold">₹2999</span>
             <span className="text-muted-foreground">/month</span>
           </div>
           <ul className="mt-8 space-y-4 flex-1">

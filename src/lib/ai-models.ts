@@ -36,3 +36,4 @@ export function getModelTokenCost(modelId: string): number {
   const model = AI_MODELS.find((m) => m.id === modelId);
   return model?.tokenCost ?? AI_MODELS[0].tokenCost;
 }
+
