@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,16 @@ export default function PricingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [pendingToast, setPendingToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isPending && pendingToast) {
+      toast.success(pendingToast);
+      setPendingToast(null);
+      setLoading(null);
+    }
+  }, [isPending, pendingToast]);
 
   const handlePayment = async (tier: string): Promise<boolean> => {
     if (!ready || !window.Razorpay) {
@@ -35,7 +45,7 @@ export default function PricingPage() {
       });
 
       const data = await res.json();
-      if (!data.success) {
+      if (!res.ok || !data?.success) {
         toast.error(data.error || "Failed to create order");
         return false;
       }
@@ -44,22 +54,20 @@ export default function PricingPage() {
 
       return await new Promise<boolean>((resolve) => {
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           amount: order.amount,
           currency: order.currency,
           order_id: order.id,
 
           handler: async function (response: any) {
-            console.log("PAYMENT SUCCESS:", response);
-
-            const verfiyRes = await fetch("/api/payment/verify", {
+            const verifyRes = await fetch("/api/payment/verify", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify(response),
             });
-            if (verfiyRes.ok) {
+            if (verifyRes.ok) {
               resolve(true);
             } else {
               toast.error("Payment verification failed");
@@ -111,12 +119,13 @@ export default function PricingPage() {
       }
 
       window.dispatchEvent(new Event("userUpdated"));
-      await router.refresh();
-      toast.success(successMessage);
+      setPendingToast(successMessage);
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (error) {
       console.error("Upgrade failed:", error);
       toast.error("Failed to update plan");
-    } finally {
       setLoading(null);
     }
   };
