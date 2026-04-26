@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import Image from "next/image";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Zap } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { UserButton, Show, SignInButton, SignUpButton } from "@clerk/nextjs";
@@ -75,25 +75,49 @@ const Navbar = () => {
 
           <Show when="signed-in">
             {tokens !== null && (
-              <div className="flex items-center gap-2 border px-3 py-1.5 rounded-full text-sm font-medium mr-2">
-                <Coins className="w-4 h-4 text-yellow-500" />
-                <span>{tokens}</span>
-                <a
-                  href="/pricing"
-                  className="text-xs ml-1 text-muted-foreground hover:text-foreground no-underline capitalize"
+              <div className="flex items-center gap-2 mr-2">
+                <div className="flex items-center gap-2 border px-3 py-1.5 rounded-full text-sm font-medium">
+                  <Coins className="w-4 h-4 text-yellow-500" />
+                  <span>{tokens}</span>
+                  <span className="text-xs ml-1 text-muted-foreground capitalize border-l pl-2">
+                    {tier}
+                  </span>
+                </div>
+                <Button
+                  className="hover:opacity-80 transition-opacity transition-duration-200"
+                  onClick={() => {
+                    window.location.href = "/pricing";
+                  }}
                 >
-                  {tier}
-                </a>
+                  <Zap className="w-3.5 h-3.5 fill-current" />
+                  <span>Upgrade</span>
+                </Button>
               </div>
             )}
             <UserButton />
           </Show>
           <Show when="signed-out">
+            <Button
+              variant="outline"
+              className="border-2 border-primary hover:opacity-80 transition-opacity transition-duration-200"
+              onClick={() => {
+                window.location.href = "/pricing";
+              }}
+            >
+              Pricing
+            </Button>
             <SignInButton>
-              <Button variant="outline">Sign In</Button>
+              <Button
+                variant="default"
+                className="hover:opacity-80 transition-opacity transition-duration-200"
+              >
+                Sign In
+              </Button>
             </SignInButton>
             <SignUpButton>
-              <Button>Sign Up</Button>
+              <Button className="hover:opacity-80 transition-opacity transition-duration-200">
+                Sign Up
+              </Button>
             </SignUpButton>
           </Show>
         </div>

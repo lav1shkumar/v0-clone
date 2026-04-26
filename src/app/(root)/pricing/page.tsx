@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
+import { useUser } from "@clerk/nextjs";
 
 declare global {
   interface Window {
@@ -14,6 +15,7 @@ declare global {
 
 export default function PricingPage() {
   const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
   const [loading, setLoading] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -95,6 +97,11 @@ export default function PricingPage() {
   };
 
   const handleUpgrade = async (tier: string) => {
+    if (isLoaded && !isSignedIn) {
+      toast.error("Please sign in to upgrade your plan");
+      return;
+    }
+
     setLoading(tier);
     try {
       let successMessage = "";
