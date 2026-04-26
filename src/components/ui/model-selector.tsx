@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 import { AI_MODELS, type AIModelId } from "@/lib/ai-models";
 
 const ICON_MAP: Record<string, React.ElementType> = {
+  "Pro+": Sparkles,
   Pro: Sparkles,
   Lite: Zap,
   Flash: Cpu,
 };
 
 const BADGE_COLORS: Record<string, string> = {
+  "Pro+": "bg-red-500/15 text-red-400 border-red-500/30",
   Pro: "bg-violet-500/15 text-violet-400 border-violet-500/30",
   Lite: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   Flash: "bg-amber-500/15 text-amber-400 border-amber-500/30",
@@ -69,13 +71,13 @@ const ModelSelector = ({ value, onChange, disabled }: ModelSelectorProps) => {
       {isOpen && (
         <div
           className={cn(
-            "absolute bottom-full mb-2 left-0 z-50 min-w-[260px]",
+            "absolute bottom-full mb-2 left-0 z-50 min-w-[220px]",
             "rounded-xl border bg-popover/95 backdrop-blur-xl shadow-xl",
             "animate-in fade-in slide-in-from-bottom-2 duration-200",
           )}
         >
-          <div className="p-1.5">
-            <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="p-1">
+            <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
               Select Model
             </p>
             {AI_MODELS.map((model) => {
@@ -91,7 +93,7 @@ const ModelSelector = ({ value, onChange, disabled }: ModelSelectorProps) => {
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left",
+                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left mt-0.5",
                     "transition-all duration-150",
                     isSelected
                       ? "bg-primary/10 border border-primary/20"
@@ -100,19 +102,19 @@ const ModelSelector = ({ value, onChange, disabled }: ModelSelectorProps) => {
                 >
                   <div
                     className={cn(
-                      "shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
+                      "shrink-0 w-6 h-6 rounded-md flex items-center justify-center",
                       isSelected
                         ? "bg-primary/15 text-primary"
                         : "bg-muted text-muted-foreground",
                     )}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3 h-3" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <span
                         className={cn(
-                          "text-sm font-medium",
+                          "text-xs font-medium",
                           isSelected
                             ? "text-foreground"
                             : "text-muted-foreground",
@@ -122,22 +124,21 @@ const ModelSelector = ({ value, onChange, disabled }: ModelSelectorProps) => {
                       </span>
                       <span
                         className={cn(
-                          "text-[10px] font-semibold px-1.5 py-0.5 rounded-md border",
+                          "text-[9px] font-semibold px-1 py-0.5 rounded border leading-none",
                           BADGE_COLORS[model.badge],
                         )}
                       >
                         {model.badge}
                       </span>
                     </div>
-                    <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-                      {model.description} <br />
+                    <p className="text-[10px] text-muted-foreground/70 mt-0.5 leading-tight">
                       <span className="text-primary/70 font-medium">
-                        {model.tokenCost} tokens/request
+                        {model.tokenCost} tokens/req
                       </span>
                     </p>
                   </div>
                   {isSelected && (
-                    <div className="shrink-0 w-2 h-2 rounded-full bg-primary" />
+                    <div className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary ml-1" />
                   )}
                 </button>
               );
