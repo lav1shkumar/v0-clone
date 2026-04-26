@@ -12,18 +12,24 @@ export async function POST(req: Request) {
 
     const { tier } = await req.json();
 
-    let tokens = 50;
-    if (tier === "PRO") {
-      tokens = 250;
-    } else if (tier === "ENTERPRISE") {
-      tokens = 1000;
+    if (tier !== "FREE") {
+      return new NextResponse("Invalid request for this endpoint", {
+        status: 400,
+      });
     }
 
+    const { TIER_DAILY_LIMITS } = await import("@/lib/utils");
+
+    const now = new Date();
     const updatedUser = await db.user.update({
       where: { clerkId: userId },
       data: {
         tier: tier as Tier,
-        tokens: tokens,
+        tokens: TIER_DAILY_LIMITS.FREE,
+        lastTokenRefresh: now,
+        monthlyTokensUsed: 0,
+        lastMonthlyReset: now,
+        planExpiresAt: null, // FREE tier has no expiration
       },
     });
 

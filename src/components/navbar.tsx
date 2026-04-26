@@ -42,11 +42,19 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Image
-            src="/logo.svg"
+            src="/logo-light.svg"
             alt="Logo"
             width={50}
             height={50}
-            className="invert dark:invert-0"
+            className="block dark:hidden cursor-pointer"
+            onClick={() => router.push("/")}
+          />
+          <Image
+            src="/logo-dark.svg"
+            alt="Logo"
+            width={50}
+            height={50}
+            className="hidden dark:block cursor-pointer"
             onClick={() => router.push("/")}
           />
         </div>

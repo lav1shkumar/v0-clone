@@ -3,12 +3,13 @@ import { getUser } from "../auth/actions";
 import db from "@/lib/db";
 import { MessageRole } from "@prisma/client";
 import { generateText } from "ai";
-import { vertex, LIGHT_MODEL } from "@/lib/ai";
+import { google } from "@ai-sdk/google";
+import { LIGHT_MODEL } from "@/lib/ai-models";
 
 async function generateProjectName(prompt: string): Promise<string> {
   try {
     const { text } = await generateText({
-      model: vertex(LIGHT_MODEL),
+      model: google(LIGHT_MODEL),
       temperature: 0.8,
       system:
         "You are a professional project naming assistant. Generate a unique, highly creative, and distinct 2-3 word project name based on the user's prompt. Avoid generic terms. Do not use quotes, periods, or extra words. Just the name.",

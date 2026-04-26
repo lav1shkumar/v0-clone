@@ -2,12 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig = {
   /* config options here */
-  output: "standalone",
+  // output: "standalone",
   reactCompiler: true,
   async headers() {
     return [
       {
-        source: "/(.*)",
+        source: "/project/(.*)",
         headers: [
           {
             key: "Cross-Origin-Embedder-Policy",
@@ -28,6 +28,15 @@ const nextConfig = {
           },
           {
             key: "Cross-Origin-Opener-Policy",
+            value: "unsafe-none",
+          },
+        ],
+      },
+      {
+        source: "/pricing",
+        headers: [
+          {
+            key: "Cross-Origin-Embedder-Policy",
             value: "unsafe-none",
           },
         ],

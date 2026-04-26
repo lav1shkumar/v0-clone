@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CodeView } from "@/components/project/code-view";
-import { FileSystemTree, WebContainer } from "@webcontainer/api";
+import { FileSystemTree, WebContainer, WebContainerProcess } from "@webcontainer/api";
 import { applyPatchesToTree } from "@/modules/helpers/normalize-tree";
 import { downloadZip } from "@/modules/helpers/build-zip";
 import { useEffect, useRef, useState } from "react";
@@ -51,7 +51,7 @@ const ProjectView = ({
   const [webcontainer, setWebcontainer] = useState<WebContainer | null>(null);
   const [files, setFiles] = useState<FileSystemTree>(initialFiles);
   const [devServerUrl, setDevServerUrl] = useState<string | null>(null);
-  const [process, setProcess] = useState<any>(null);
+  const [process, setProcess] = useState<WebContainerProcess | null>(null);
   const [activeTab1, setActiveTab1] = useState<"terminal" | "chat">("chat");
   const [activeTab2, setActiveTab2] = useState<"preview" | "code">("preview");
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -63,6 +63,7 @@ const ProjectView = ({
   const [fileOperations, setFileOperations] = useState<
     { type: string; path: string }[]
   >([]);
+
   const selectedModelRef = useRef<AIModelId>(DEFAULT_MODEL as AIModelId);
 
   const { complete, completion, isLoading } = useCompletion({
@@ -131,6 +132,7 @@ const ProjectView = ({
 
     onError: (error) => {
       toast.error(error.message || "An error occurred");
+      console.log(error);
       setIsProcessing(false);
     },
   });

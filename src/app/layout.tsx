@@ -55,8 +55,26 @@ export const metadata: Metadata = {
     images: ["/logo_large.svg"],
   },
   icons: {
-    icon: "/logo.svg",
-    apple: "/logo.svg",
+    icon: [
+      {
+        url: "/logo-light.svg",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/logo-dark.svg",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+    apple: [
+      {
+        url: "/logo-light.svg",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/logo-dark.svg",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
   },
 };
 
