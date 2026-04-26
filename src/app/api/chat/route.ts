@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { google } from "@ai-sdk/google";
+import { createVertex } from "@ai-sdk/google-vertex";
 import { auth } from "@clerk/nextjs/server";
 import { globalRateLimiter } from "@/lib/rate-limit";
 import db from "@/lib/db";
@@ -14,6 +14,17 @@ import {
 import { TIER_MONTHLY_LIMITS } from "@/lib/utils";
 
 export const maxDuration = 300;
+
+const model = createVertex({
+  project: process.env.GOOGLE_VERTEX_PROJECT,
+  location: process.env.GOOGLE_VERTEX_LOCATION,
+  googleAuthOptions: {
+    credentials: {
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY,
+    },
+  },
+});
 
 export async function POST(req: Request) {
   try {
@@ -104,7 +115,7 @@ export async function POST(req: Request) {
     const messages = `USER REQUEST: ${userPrompt}\n\nCURRENT CODEBASE:\n${JSON.stringify(flatFiles)}`;
 
     const result = streamText({
-      model: google(selectedModel),
+      model: model(selectedModel),
       system: SYSTEM_PROMPT,
       prompt: messages,
 

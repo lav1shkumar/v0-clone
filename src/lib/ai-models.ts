@@ -1,4 +1,4 @@
-export const DEFAULT_MODEL = "gemini-3.1-pro-preview";
+export const DEFAULT_MODEL = "gemini-2.5-pro";
 export const LIGHT_MODEL = "gemini-3.1-flash-lite-preview";
 
 export const AI_MODELS = [
