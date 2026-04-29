@@ -22,15 +22,17 @@ const formSchema = z.object({
 });
 
 interface ProjectFormProps {
-  onSubmitMessage?: (message: string, model: AIModelId) => Promise<any>;
+  onSubmitMessage?: (message: string, model: AIModelId) => Promise<unknown>;
+  initialModel?: AIModelId;
 }
 
-const PromptInput = ({ onSubmitMessage }: ProjectFormProps) => {
+const PromptInput = ({
+  onSubmitMessage,
+  initialModel = DEFAULT_MODEL as AIModelId,
+}: ProjectFormProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AIModelId>(
-    DEFAULT_MODEL as AIModelId,
-  );
+  const [selectedModel, setSelectedModel] = useState<AIModelId>(initialModel);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

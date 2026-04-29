@@ -2,15 +2,12 @@
 
 import Image from "next/image";
 import ProjectForm from "@/components/home/project-form";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createProject } from "@/modules/updates";
 import ProjectHistory from "@/components/home/project-history";
 import type { AIModelId } from "@/lib/ai-models";
 
 export default function Page() {
-  const router = useRouter();
-
   const handleSubmit = async (message: string, model: AIModelId) => {
     try {
       const newProject = await createProject(message);
@@ -21,14 +18,15 @@ export default function Page() {
       }
       toast.success(newProject.message);
 
-      window.location.href = `/project/${newProject.project}`;
-    } catch (error) {
+      window.location.href = `/project/${newProject.project}?model=${encodeURIComponent(model)}`;
+    } catch {
       toast.error("Failed to start dev server");
     }
   };
 
   return (
     <div className="flex flex-col justify-center items-center w-full p-4">
+      <ProjectHistory />
       <div className="w-full max-w-5xl">
         <section className="flex flex-col items-center">
           <div className="flex flex-col items-center">
@@ -48,9 +46,8 @@ export default function Page() {
             Create and deploy AI agents with ease
           </p> */}
 
-          <div className="max-w-5xl w-full flex flex-col items-center gap-12 mt-12">
+          <div className="max-w-5xl w-full flex flex-col items-center mt-10">
             <ProjectForm onSubmitMessage={handleSubmit} />
-            <ProjectHistory />
           </div>
         </section>
       </div>

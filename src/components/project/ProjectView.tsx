@@ -21,7 +21,6 @@ import ChatWindow from "@/components/project/chat";
 import { toast } from "sonner";
 import { getWebContainer } from "@/modules/helpers/web-container";
 import { useCompletion } from "@ai-sdk/react";
-import { DEFAULT_MODEL } from "@/lib/ai-models";
 import type { AIModelId } from "@/lib/ai-models";
 
 const XTerminal = dynamic(() => import("@/components/project/terminal"), {
@@ -32,7 +31,13 @@ interface ProjectViewProps {
   projectId: string;
   projectName: string;
   initialFiles: FileSystemTree;
+  initialModel: AIModelId;
 }
+
+type ChatMessage = {
+  role: string;
+  content: string;
+};
 
 const extractJson = (text: string) => {
   const firstBrace = text.indexOf("{");
@@ -47,6 +52,7 @@ const ProjectView = ({
   projectId,
   projectName,
   initialFiles,
+  initialModel,
 }: ProjectViewProps) => {
   const [webcontainer, setWebcontainer] = useState<WebContainer | null>(null);
   const [files, setFiles] = useState<FileSystemTree>(initialFiles);
@@ -57,14 +63,14 @@ const ProjectView = ({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [currentUrl, setCurrentUrl] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const hasAutoTriggered = useRef(false);
   const [currentStatus, setCurrentStatus] = useState<string>("");
   const [fileOperations, setFileOperations] = useState<
     { type: string; path: string }[]
   >([]);
 
-  const selectedModelRef = useRef<AIModelId>(DEFAULT_MODEL as AIModelId);
+  const selectedModelRef = useRef<AIModelId>(initialModel);
 
   const { complete, completion, isLoading } = useCompletion({
     api: "/api/chat",
@@ -84,8 +90,8 @@ const ProjectView = ({
         const updatedFiles = applyPatchesToTree(files, patches);
 
         const formattedSummary = Array.isArray(summary)
-          ? summary.map((item, index) => `${index + 1}. ${item}`).join("\n")
-          : summary;
+          ? summary.map((item, index) => `${index + 1}. ${String(item)}`).join("\n")
+          : String(summary ?? "");
 
         const res = await fetch("/api/messages/addmessages", {
           method: "POST",
@@ -161,7 +167,7 @@ const ProjectView = ({
     }
   }, [completion]);
 
-  const handleMessagesLoaded = async (loadedMessages: any[]) => {
+  const handleMessagesLoaded = async (loadedMessages: ChatMessage[]) => {
     if (
       loadedMessages.length > 0 &&
       !hasAutoTriggered.current &&
@@ -355,7 +361,10 @@ const ProjectView = ({
           </div>
 
           <div className="shrink-0 flex flex-col items-center justify-center p-4">
-            <PromptInput onSubmitMessage={handleClick} />
+            <PromptInput
+              onSubmitMessage={handleClick}
+              initialModel={initialModel}
+            />
           </div>
         </div>
 

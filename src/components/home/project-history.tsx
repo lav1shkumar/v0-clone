@@ -1,23 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import {
-  FolderIcon,
-  Clock,
   ArrowUpRight,
-  FileCode2,
-  Plus,
-  Search,
-  Layout,
-  Trash2,
-  Pencil,
   Check,
+  Clock,
+  FileCode2,
+  FolderIcon,
+  History,
+  Pencil,
+  Trash2,
   X,
 } from "lucide-react";
-import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
+
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "../ui/button";
 
 interface Project {
   id: string;
@@ -29,6 +28,7 @@ interface Project {
 const ProjectHistory = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -48,8 +48,23 @@ const ProjectHistory = () => {
         setIsLoading(false);
       }
     };
+
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        setEditingProjectId(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -67,8 +82,17 @@ const ProjectHistory = () => {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  const handleDelete = async (e: React.MouseEvent, projectId: string) => {
-    e.stopPropagation();
+  const closeDrawer = () => {
+    setIsOpen(false);
+    setEditingProjectId(null);
+  };
+
+  const openProject = (projectId: string) => {
+    router.push(`/project/${projectId}`);
+  };
+
+  const handleDelete = async (event: React.MouseEvent, projectId: string) => {
+    event.stopPropagation();
 
     if (
       !window.confirm(
@@ -90,7 +114,7 @@ const ProjectHistory = () => {
       const data = await res.json();
 
       if (data.success) {
-        setProjects((prev) => prev.filter((p) => p.id !== projectId));
+        setProjects((prev) => prev.filter((project) => project.id !== projectId));
         toast.success("Project deleted successfully");
       } else {
         toast.error(data.error || "Failed to delete project");
@@ -107,27 +131,27 @@ const ProjectHistory = () => {
     }
   };
 
-  const handleRename = async (e: React.MouseEvent, projectId: string) => {
-    e.stopPropagation();
-
-    if (!editingName.trim()) return;
+  const handleRename = async (projectId: string) => {
+    const nextName = editingName.trim();
+    if (!nextName) return;
 
     try {
       const res = await fetch("/api/project/rename", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, name: editingName }),
+        body: JSON.stringify({ projectId, name: nextName }),
       });
       const data = await res.json();
 
       if (data.success) {
         setProjects((prev) =>
-          prev.map((p) =>
-            p.id === projectId ? { ...p, name: editingName } : p,
+          prev.map((project) =>
+            project.id === projectId ? { ...project, name: nextName } : project,
           ),
         );
         toast.success("Project renamed successfully");
         setEditingProjectId(null);
+        setEditingName("");
       } else {
         toast.error(data.error || "Failed to rename project");
       }
@@ -137,169 +161,258 @@ const ProjectHistory = () => {
     }
   };
 
-  const startEditing = (e: React.MouseEvent, project: Project) => {
-    e.stopPropagation();
+  const startEditing = (event: React.MouseEvent, project: Project) => {
+    event.stopPropagation();
     setEditingProjectId(project.id);
     setEditingName(project.name);
   };
 
-  const cancelEditing = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const cancelEditing = (event?: React.MouseEvent) => {
+    event?.stopPropagation();
     setEditingProjectId(null);
     setEditingName("");
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full py-20 flex flex-col items-center justify-center gap-3">
-        <Spinner className="w-8 h-8 text-primary" />
-        <p className="text-sm text-muted-foreground animate-pulse">
-          Loading project history...
-        </p>
-      </div>
-    );
-  }
-
-  if (projects.length === 0) {
-    return (
-      <div className="w-full py-16 flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-muted bg-accent/5">
-        <div className="p-4 rounded-full bg-accent text-muted-foreground">
-          <FolderIcon className="w-8 h-8" />
-        </div>
-        <div className="text-center space-y-1">
-          <h3 className="text-lg font-semibold">No projects yet</h3>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-            Your recent projects will appear here once you start creating!
+  const renderDrawerContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-16">
+          <Spinner className="h-7 w-7 text-primary" />
+          <p className="text-sm text-muted-foreground">
+            Loading recent projects...
           </p>
         </div>
+      );
+    }
+
+    if (projects.length === 0) {
+      return (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 py-16 text-center">
+          <div className="rounded-full bg-accent p-4 text-muted-foreground">
+            <FolderIcon className="h-7 w-7" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold">No projects yet</h3>
+            <p className="text-sm text-muted-foreground">
+              Your recent projects will appear here once you start creating.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        <div className="space-y-2">
+          {projects.map((project) => (
+            <div
+              key={project.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => openProject(project.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openProject(project.id);
+                }
+              }}
+              className="group cursor-pointer rounded-lg border border-transparent bg-background/60 p-3 transition-colors hover:border-primary/20 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-md bg-accent p-2 text-muted-foreground transition-colors group-hover:text-primary">
+                  <FileCode2 className="h-4 w-4" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  {editingProjectId === project.id ? (
+                    <div
+                      className="flex items-center gap-1"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <input
+                        autoFocus
+                        value={editingName}
+                        onChange={(event) => setEditingName(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleRename(project.id);
+                          }
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            cancelEditing();
+                          }
+                        }}
+                        className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-500/10 hover:text-green-700"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleRename(project.id);
+                        }}
+                      >
+                        <Check className="h-4 w-4" />
+                        <span className="sr-only">Save project name</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={cancelEditing}
+                      >
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Cancel rename</span>
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <div className="min-w-0 space-y-1">
+                        <h3 className="truncate text-sm font-semibold transition-colors group-hover:text-primary">
+                          {project.name}
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Clock className="h-3.5 w-3.5" />
+                          <span>{formatTimeAgo(project.updatedAt)}</span>
+                        </div>
+                      </div>
+
+                      <div
+                        className="flex shrink-0 items-center gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                          onClick={(event) => startEditing(event, project)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          <span className="sr-only">Rename project</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                          onClick={(event) => handleDelete(event, project.id)}
+                          disabled={deletingIds.has(project.id)}
+                        >
+                          {deletingIds.has(project.id) ? (
+                            <Spinner className="h-3.5 w-3.5" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
+                          <span className="sr-only">Delete project</span>
+                        </Button>
+                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="w-full space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
-            <Layout className="w-5 h-5" />
-          </div>
-          <h2 className="text-xl font-bold tracking-tight">Recent Projects</h2>
-        </div>
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border bg-background/50 backdrop-blur-sm text-[11px] font-medium text-muted-foreground">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-          <span>{projects.length} Saved Projects</span>
-        </div>
+    <>
+      <div className="fixed left-4 top-24 z-40 hidden sm:block">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-12 gap-2 rounded-lg border-sidebar-border bg-sidebar/95 px-3 text-sidebar-foreground shadow-lg backdrop-blur hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          onClick={() => setIsOpen(true)}
+          aria-label="Open recent projects"
+        >
+          <History className="h-4 w-4" />
+          <span className="text-sm font-medium">Recent projects</span>
+          {!isLoading && projects.length > 0 && (
+            <span className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold leading-none text-primary-foreground">
+              {projects.length}
+            </span>
+          )}
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {projects.map((project) => (
-          <div
-            key={project.id}
-            onClick={() => (window.location.href = `/project/${project.id}`)}
-            className="group relative cursor-pointer flex flex-col justify-between p-5 rounded-xl border border-border bg-card hover:bg-accent/40 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-          >
-            <div className="space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="p-2.5 rounded-lg bg-accent group-hover:bg-primary/20 group-hover:text-primary transition-colors">
-                  <FileCode2 className="w-5 h-5" />
-                </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    onClick={(e) => startEditing(e, project)}
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    onClick={(e) => handleDelete(e, project.id)}
-                    disabled={deletingIds.has(project.id)}
-                  >
-                    {deletingIds.has(project.id) ? (
-                      <Spinner className="w-3.5 h-3.5" />
-                    ) : (
-                      <Trash2 className="w-3.5 h-3.5" />
-                    )}
-                  </Button>
-                  <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                {editingProjectId === project.id ? (
-                  <div
-                    className="flex items-center gap-2 mb-2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      autoFocus
-                      value={editingName}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setEditingName(e.target.value)
-                      }
-                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                        if (e.key === "Enter")
-                          handleRename(
-                            e as unknown as React.MouseEvent,
-                            project.id,
-                          );
-                        if (e.key === "Escape")
-                          cancelEditing(e as unknown as React.MouseEvent);
-                      }}
-                      className="h-8 text-sm flex w-full rounded-md border border-input bg-transparent px-3 py-1 shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-500/10"
-                      onClick={(e) => handleRename(e, project.id)}
-                    >
-                      <Check className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                      onClick={cancelEditing}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <h3 className="font-bold text-base truncate pr-6 group-hover:text-primary transition-colors">
-                    {project.name}
-                  </h3>
-                )}
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{formatTimeAgo(project.updatedAt)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 flex items-center justify-between pt-4 border-t border-border/50">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground/70">
-                #{project.id.slice(-6).toUpperCase()}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-xs font-semibold hover:bg-primary/10 hover:text-primary"
-              >
-                Open Project
-              </Button>
-            </div>
-
-            {/* Gloss effect overlay */}
-            <div className="absolute inset-0 rounded-xl bg-linear-to-br from-white/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-        ))}
+      <div className="fixed bottom-4 left-4 z-40 sm:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 gap-2 rounded-lg border-sidebar-border bg-sidebar/95 px-3 text-sidebar-foreground shadow-lg backdrop-blur hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          onClick={() => setIsOpen(true)}
+          aria-label="Open recent projects"
+        >
+          <History className="h-4 w-4" />
+          <span className="text-sm font-medium">Recent</span>
+          {!isLoading && projects.length > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold leading-none text-primary-foreground">
+              {projects.length}
+            </span>
+          )}
+        </Button>
       </div>
-    </div>
+
+      <div
+        className={`fixed inset-0 z-[60] transition ${
+          isOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+      >
+        <button
+          type="button"
+          className={`absolute inset-0 cursor-default bg-background/60 backdrop-blur-[2px] transition-opacity duration-200 ${
+            isOpen ? "opacity-100" : "opacity-0"
+          }`}
+          aria-label="Close recent projects"
+          onClick={closeDrawer}
+          tabIndex={isOpen ? 0 : -1}
+        />
+
+        <aside
+          aria-label="Recent projects"
+          className={`absolute inset-y-0 left-0 flex w-[min(100vw,380px)] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-2xl transition-transform duration-200 ease-out ${
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <History className="h-4 w-4 text-primary" />
+                <h2 className="text-base font-semibold">Recent projects</h2>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isLoading
+                  ? "Loading saved work"
+                  : `${projects.length} saved ${
+                      projects.length === 1 ? "project" : "projects"
+                    }`}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              onClick={closeDrawer}
+              tabIndex={isOpen ? 0 : -1}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close recent projects</span>
+            </Button>
+          </div>
+
+          {renderDrawerContent()}
+        </aside>
+      </div>
+    </>
   );
 };
 

@@ -17,7 +17,7 @@ export const AI_MODELS = [
     tokenCost: 15,
   },
   {
-    id: "gemini-3.0-flash",
+    id: "gemini-3-flash-preview",
     name: "Gemini 3 Flash",
     description: "Balanced performance",
     badge: "Flash",
