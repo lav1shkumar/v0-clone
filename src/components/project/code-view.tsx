@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Editor } from "@monaco-editor/react";
+import { Editor, type BeforeMount } from "@monaco-editor/react";
 import { FileExplorer } from "./file-explorer";
 import { Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import type { FileSystemTree } from "@webcontainer/api";
 
 interface CodeViewProps {
-  files: any;
+  files: FileSystemTree;
   onFileChange?: (path: string, content: string) => void;
 }
 
@@ -44,7 +45,7 @@ export function CodeView({ files, onFileChange }: CodeViewProps) {
     }
   };
 
-  const handleEditorWillMount = (monaco: any) => {
+  const handleEditorWillMount: BeforeMount = (monaco) => {
     // Configure Monaco to understand JSX/TSX
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       jsx: monaco.languages.typescript.JsxEmit.React,
@@ -69,10 +70,10 @@ export function CodeView({ files, onFileChange }: CodeViewProps) {
   };
 
   return (
-    <div className="flex h-full w-full border border-border bg-background text-foreground overflow-hidden rounded-md shadow-sm">
+    <div className="flex h-full w-full overflow-hidden bg-background text-foreground">
       {/* Sidebar - File Explorer */}
-      <div className="w-64 border-r border-border flex flex-col h-full bg-sidebar shrink-0">
-        <div className="p-3 text-xs font-semibold tracking-wider text-sidebar-foreground/70 uppercase border-b border-border bg-sidebar/50 backdrop-blur-sm">
+      <div className="flex h-full w-64 shrink-0 flex-col border-r border-border/70 bg-sidebar/80">
+        <div className="border-b border-border/70 bg-sidebar/70 p-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/70 backdrop-blur-sm">
           Explorer
         </div>
         <div className="flex-1 overflow-y-auto py-2">
@@ -85,19 +86,19 @@ export function CodeView({ files, onFileChange }: CodeViewProps) {
       </div>
 
       {/* Main Area - Monaco Editor */}
-      <div className="flex-1 flex flex-col h-full bg-background min-w-0">
+      <div className="flex h-full min-w-0 flex-1 flex-col bg-background">
         {selectedFile ? (
           <>
             {/* Editor Tabs */}
-            <div className="flex border-b border-border bg-muted/30">
-              <div className="px-4 py-2 bg-background border-t-2 border-t-primary text-sm flex items-center gap-2 shadow-[0_1px_0_0_hsl(var(--background))] z-10">
+            <div className="flex border-b border-border/70 bg-muted/30 px-2 pt-2">
+              <div className="z-10 flex max-w-full items-center gap-2 rounded-t-lg border border-b-0 border-border/70 bg-background px-3 py-2 text-sm shadow-sm">
                 <span className="truncate max-w-[300px] font-mono text-foreground">
                   {selectedFile.path.split("/").pop()}
                 </span>
               </div>
             </div>
             {/* Editor Container */}
-            <div className="flex-1 relative">
+            <div className="relative flex-1">
               <Editor
                 height="100%"
                 path={selectedFile.path}
@@ -115,7 +116,7 @@ export function CodeView({ files, onFileChange }: CodeViewProps) {
                 }}
                 loading={
                   <div className="flex items-center justify-center h-full text-muted-foreground">
-                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 }
                 options={{
@@ -130,7 +131,7 @@ export function CodeView({ files, onFileChange }: CodeViewProps) {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground font-mono text-sm bg-muted/10">
+          <div className="flex flex-1 items-center justify-center bg-muted/10 font-mono text-sm text-muted-foreground">
             Select a file to view its contents
           </div>
         )}

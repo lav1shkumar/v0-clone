@@ -2,6 +2,11 @@ import { useEffect, useRef } from "react";
 import { User, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+type ChatMessage = {
+  role: string;
+  content: string;
+};
+
 const ChatWindow = ({
   projectId,
   messages,
@@ -11,9 +16,9 @@ const ChatWindow = ({
   status,
 }: {
   projectId: string;
-  messages: any[];
-  setMessages: React.Dispatch<React.SetStateAction<any[]>>;
-  onMessagesLoaded?: (messages: any[]) => void;
+  messages: ChatMessage[];
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  onMessagesLoaded?: (messages: ChatMessage[]) => void;
   isProcessing?: boolean;
   status?: string;
 }) => {
@@ -59,17 +64,19 @@ const ChatWindow = ({
     <div className="flex flex-col h-full">
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth scrollbar-thin scrollbar-thumb-muted-foreground/20"
+        className="flex-1 space-y-4 overflow-y-auto p-4 scroll-smooth scrollbar-thin scrollbar-thumb-muted-foreground/20"
       >
         {messages.length === 0 ? (
-          <div className="shrink-0 h-full flex flex-col items-center justify-center text-muted-foreground opacity-50 space-y-2">
-            <Bot className="w-8 h-8" />
-            <p className="text-sm font-medium">
-              No messages yet. Start a conversation!
+          <div className="flex h-full shrink-0 flex-col items-center justify-center space-y-3 text-center text-muted-foreground">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border/70 bg-muted/50">
+              <Bot className="h-5 w-5" />
+            </div>
+            <p className="max-w-64 text-sm font-medium leading-6">
+              Start with a change request, bug fix, or design idea.
             </p>
           </div>
         ) : (
-          messages.map((message: any, index: number) => (
+          messages.map((message, index) => (
             <div
               key={index}
               className={cn(
@@ -79,24 +86,24 @@ const ChatWindow = ({
             >
               <div
                 className={cn(
-                  "shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
                   message.role === "USER"
                     ? "bg-primary text-primary-foreground"
-                    : "bg-muted border border-border",
+                    : "border border-border bg-muted",
                 )}
               >
                 {message.role === "USER" ? (
-                  <User className="w-4 h-4" />
+                  <User className="h-4 w-4" />
                 ) : (
-                  <Bot className="w-4 h-4" />
+                  <Bot className="h-4 w-4" />
                 )}
               </div>
               <div
                 className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm text-sm leading-relaxed whitespace-pre-wrap",
+                  "max-w-[82%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
                   message.role === "USER"
                     ? "bg-primary text-primary-foreground rounded-tr-none"
-                    : "bg-muted/80 text-foreground border border-border rounded-tl-none",
+                    : "rounded-tl-none border border-border/70 bg-muted/70 text-foreground",
                 )}
               >
                 {message.content}
@@ -106,14 +113,14 @@ const ChatWindow = ({
         )}
         {isProcessing && (
           <div className="flex items-start gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 flex-row">
-            <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-muted border border-border">
-              <Bot className="w-4 h-4" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
+              <Bot className="h-4 w-4" />
             </div>
-            <div className="max-w-[80%] rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed bg-muted/80 text-foreground border border-border rounded-tl-none flex items-center gap-2">
+            <div className="flex max-w-[82%] items-center gap-2 rounded-2xl rounded-tl-none border border-border/70 bg-muted/70 px-4 py-3 text-sm leading-relaxed text-foreground shadow-sm">
               <span className="flex gap-1 mr-2">
-                <span className="w-1.5 h-1.5 bg-foreground/50 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                <span className="w-1.5 h-1.5 bg-foreground/50 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <span className="w-1.5 h-1.5 bg-foreground/50 rounded-full animate-bounce" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/50 [animation-delay:-0.3s]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/50 [animation-delay:-0.15s]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/50" />
               </span>
               <span className="text-muted-foreground font-medium animate-pulse">
                 {status || "Thinking..."}

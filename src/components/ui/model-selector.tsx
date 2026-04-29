@@ -52,8 +52,8 @@ const ModelSelector = ({ value, onChange, disabled }: ModelSelectorProps) => {
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium",
-          "border bg-background/50 hover:bg-accent/50 transition-all duration-200",
+          "flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium shadow-sm",
+          "border border-border/70 bg-background/70 hover:bg-accent/60 transition-all duration-200",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           isOpen && "ring-2 ring-primary/20 border-primary/30",
         )}
@@ -72,7 +72,7 @@ const ModelSelector = ({ value, onChange, disabled }: ModelSelectorProps) => {
         <div
           className={cn(
             "absolute bottom-full mb-2 left-0 z-50 min-w-[220px]",
-            "rounded-xl border bg-popover/95 backdrop-blur-xl shadow-xl",
+            "rounded-xl border border-border/70 bg-popover/95 backdrop-blur-xl shadow-xl",
             "animate-in fade-in slide-in-from-bottom-2 duration-200",
           )}
         >
@@ -93,7 +93,7 @@ const ModelSelector = ({ value, onChange, disabled }: ModelSelectorProps) => {
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left mt-0.5",
+                    "mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left",
                     "transition-all duration-150",
                     isSelected
                       ? "bg-primary/10 border border-primary/20"

@@ -203,7 +203,7 @@ const ProjectHistory = () => {
 
     return (
       <div className="flex-1 overflow-y-auto px-3 py-3">
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {projects.map((project) => (
             <div
               key={project.id}
@@ -216,10 +216,10 @@ const ProjectHistory = () => {
                   openProject(project.id);
                 }
               }}
-              className="group cursor-pointer rounded-lg border border-transparent bg-background/60 p-3 transition-colors hover:border-primary/20 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group cursor-pointer rounded-xl border border-transparent bg-background/55 p-3 transition-all hover:border-primary/20 hover:bg-accent/45 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 rounded-md bg-accent p-2 text-muted-foreground transition-colors group-hover:text-primary">
+                <div className="mt-0.5 rounded-lg border border-border/60 bg-accent/70 p-2 text-muted-foreground transition-colors group-hover:border-primary/20 group-hover:text-primary">
                   <FileCode2 className="h-4 w-4" />
                 </div>
 
@@ -245,7 +245,7 @@ const ProjectHistory = () => {
                             cancelEditing();
                           }
                         }}
-                        className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        className="h-8 min-w-0 flex-1 rounded-lg border border-input bg-background px-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                       />
                       <Button
                         variant="ghost"
@@ -272,7 +272,7 @@ const ProjectHistory = () => {
                   ) : (
                     <div className="flex min-w-0 items-start justify-between gap-2">
                       <div className="min-w-0 space-y-1">
-                        <h3 className="truncate text-sm font-semibold transition-colors group-hover:text-primary">
+                        <h3 className="truncate text-sm font-semibold leading-5 transition-colors group-hover:text-primary">
                           {project.name}
                         </h3>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -327,7 +327,7 @@ const ProjectHistory = () => {
         <Button
           type="button"
           variant="outline"
-          className="h-12 gap-2 rounded-lg border-sidebar-border bg-sidebar/95 px-3 text-sidebar-foreground shadow-lg backdrop-blur hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="h-11 gap-2 rounded-full border-border/70 bg-card/80 px-3 text-foreground shadow-sm backdrop-blur-xl hover:bg-accent/70"
           onClick={() => setIsOpen(true)}
           aria-label="Open recent projects"
         >
@@ -345,7 +345,7 @@ const ProjectHistory = () => {
         <Button
           type="button"
           variant="outline"
-          className="h-11 gap-2 rounded-lg border-sidebar-border bg-sidebar/95 px-3 text-sidebar-foreground shadow-lg backdrop-blur hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="h-11 gap-2 rounded-full border-border/70 bg-card/85 px-3 text-foreground shadow-sm backdrop-blur-xl hover:bg-accent/70"
           onClick={() => setIsOpen(true)}
           aria-label="Open recent projects"
         >
@@ -368,7 +368,7 @@ const ProjectHistory = () => {
       >
         <button
           type="button"
-          className={`absolute inset-0 cursor-default bg-background/60 backdrop-blur-[2px] transition-opacity duration-200 ${
+          className={`absolute inset-0 cursor-default bg-background/55 backdrop-blur-sm transition-opacity duration-200 ${
             isOpen ? "opacity-100" : "opacity-0"
           }`}
           aria-label="Close recent projects"
@@ -378,11 +378,11 @@ const ProjectHistory = () => {
 
         <aside
           aria-label="Recent projects"
-          className={`absolute inset-y-0 left-0 flex w-[min(100vw,380px)] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-2xl transition-transform duration-200 ease-out ${
+          className={`absolute inset-y-0 left-0 flex w-[min(100vw,380px)] flex-col border-r border-border/70 bg-sidebar/95 text-sidebar-foreground shadow-xl backdrop-blur-xl transition-transform duration-200 ease-out ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-4">
+          <div className="flex items-center justify-between border-b border-border/70 px-4 py-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4 text-primary" />

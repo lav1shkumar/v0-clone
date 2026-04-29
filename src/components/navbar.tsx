@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import Image from "next/image";
-import { Moon, Sun, Zap } from "lucide-react";
+import { Coins, Moon, Sun, Zap } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { UserButton, Show, SignInButton, SignUpButton } from "@clerk/nextjs";
@@ -10,16 +10,11 @@ import { UserButton, Show, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 
 import { getUser } from "@/modules/auth/actions";
-import Link from "next/link";
-import { Coins } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [tokens, setTokens] = React.useState<number | null>(null);
   const [tier, setTier] = React.useState<string | null>(null);
-
-  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = () => {
@@ -38,15 +33,15 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="p-4 bg-transparent fixed top-0 left-0 right-0 z-50 transition-all border-b border-transparent duration-200">
-      <div className="container mx-auto flex items-center justify-between">
+    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-xl transition-colors duration-200">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-2">
           <Image
             src="/logo-light.svg"
             alt="Logo"
-            width={50}
-            height={50}
-            className="block dark:hidden cursor-pointer"
+            width={42}
+            height={42}
+            className="block cursor-pointer dark:hidden"
             onClick={() => {
               window.location.href = "/";
             }}
@@ -54,9 +49,9 @@ const Navbar = () => {
           <Image
             src="/logo-dark.svg"
             alt="Logo"
-            width={50}
-            height={50}
-            className="hidden dark:block cursor-pointer"
+            width={42}
+            height={42}
+            className="hidden cursor-pointer dark:block"
             onClick={() => {
               window.location.href = "/";
             }}
@@ -66,6 +61,7 @@ const Navbar = () => {
           <Button
             variant="outline"
             size="icon"
+            className="border-border/70 bg-card/70 shadow-sm backdrop-blur"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -75,22 +71,23 @@ const Navbar = () => {
 
           <Show when="signed-in">
             {tokens !== null && (
-              <div className="flex items-center gap-2 mr-2">
-                <div className="flex items-center gap-2 border px-3 py-1.5 rounded-full text-sm font-medium">
-                  <Coins className="w-4 h-4 text-yellow-500" />
+              <div className="flex items-center gap-2">
+                <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1.5 text-sm font-medium shadow-sm backdrop-blur sm:flex">
+                  <Coins className="h-4 w-4 text-primary" />
                   <span>{tokens}</span>
-                  <span className="text-xs ml-1 text-muted-foreground capitalize border-l pl-2">
+                  <span className="border-l border-border pl-2 text-xs capitalize text-muted-foreground">
                     {tier}
                   </span>
                 </div>
                 <Button
-                  className="hover:opacity-80 transition-opacity transition-duration-200"
+                  size="sm"
+                  className="gap-1.5 shadow-sm"
                   onClick={() => {
                     window.location.href = "/pricing";
                   }}
                 >
-                  <Zap className="w-3.5 h-3.5 fill-current" />
-                  <span>Upgrade</span>
+                  <Zap className="h-3.5 w-3.5 fill-current" />
+                  <span className="hidden sm:inline">Upgrade</span>
                 </Button>
               </div>
             )}
@@ -99,7 +96,8 @@ const Navbar = () => {
           <Show when="signed-out">
             <Button
               variant="outline"
-              className="border-2 border-primary hover:opacity-80 transition-opacity transition-duration-200"
+              size="sm"
+              className="hidden border-border/70 bg-card/70 shadow-sm backdrop-blur sm:inline-flex"
               onClick={() => {
                 window.location.href = "/pricing";
               }}
@@ -108,14 +106,15 @@ const Navbar = () => {
             </Button>
             <SignInButton>
               <Button
-                variant="default"
-                className="hover:opacity-80 transition-opacity transition-duration-200"
+                variant="outline"
+                size="sm"
+                className="border-border/70 bg-card/70 shadow-sm backdrop-blur"
               >
                 Sign In
               </Button>
             </SignInButton>
             <SignUpButton>
-              <Button className="hover:opacity-80 transition-opacity transition-duration-200">
+              <Button size="sm" className="shadow-sm">
                 Sign Up
               </Button>
             </SignUpButton>

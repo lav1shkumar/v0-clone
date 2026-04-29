@@ -59,7 +59,7 @@ export default function XTerminal({
       console.warn("Could not pipe process output:", e);
     }
 
-    let writer: any = null;
+    let writer: WritableStreamDefaultWriter<string> | null = null;
     try {
       if (!process.input.locked) {
         writer = process.input.getWriter();

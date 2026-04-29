@@ -1,18 +1,20 @@
 import JSZip from "jszip";
+import type { DirectoryNode, FileNode, FileSystemTree } from "@webcontainer/api";
 
-function addToZip(zip: JSZip, tree: Record<string, any>) {
+function addToZip(zip: JSZip, tree: FileSystemTree) {
   for (const [name, node] of Object.entries(tree)) {
     if ("directory" in node) {
       const folder = zip.folder(name)!;
-      addToZip(folder, node.directory);
+      addToZip(folder, (node as DirectoryNode).directory);
     } else if ("file" in node) {
-      zip.file(name, node.file.contents ?? "");
+      const contents = (node as FileNode).file.contents ?? "";
+      zip.file(name, contents);
     }
   }
 }
 
 export async function buildZipFromFiles(
-  files: Record<string, any>
+  files: FileSystemTree
 ): Promise<Blob> {
   const zip = new JSZip();
   addToZip(zip, files);
@@ -20,7 +22,7 @@ export async function buildZipFromFiles(
 }
 
 export function downloadZip(
-  files: Record<string, any>,
+  files: FileSystemTree,
   filename = "project.zip"
 ) {
   buildZipFromFiles(files).then((blob) => {

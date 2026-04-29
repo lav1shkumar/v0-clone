@@ -11,15 +11,14 @@ const Layout = async ({
 }>) => {
   await handleSignUp();
   return (
-    <main>
+    <main className="min-h-screen overflow-x-hidden">
       <Navbar />
       <div
         className="fixed inset-0 -z-10 h-full w-full bg-background
-        dark:bg-[radial-gradient(#393e4a_1px,transparent_1px)]
-        bg-[radial-gradient(#dadde2_1px,transparent_1px)]
-        bg-size-[16px_16px]"
+        bg-[radial-gradient(circle_at_top_left,var(--primary)_0,transparent_28rem),radial-gradient(var(--border)_1px,transparent_1px)]
+        bg-size-[auto,24px_24px] opacity-[0.18] dark:opacity-[0.22]"
       />
-      <div className="flex-1 w-full mt-20">{children}</div>
+      <div className="flex-1 w-full pt-20">{children}</div>
     </main>
   );
 };

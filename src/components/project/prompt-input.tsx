@@ -56,7 +56,7 @@ const PromptInput = ({
       setIsPending(true);
       form.reset();
       await onSubmitMessage?.(values.content, selectedModel);
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong");
     } finally {
       setIsPending(false);
@@ -67,9 +67,8 @@ const PromptInput = ({
     <form
       onSubmit={form.handleSubmit(onSubmit)}
       className={cn(
-        "relative border p-4 pt-1 rounded-xl bg-sidebar dark:bg-sidebar transition-all",
-        isFocused && "shadow-lg ring-2 ring-primary/20",
-        "w-[90%]",
+        "relative w-full overflow-hidden rounded-xl border border-border/70 bg-card/85 p-3 pt-1 shadow-sm backdrop-blur transition-all",
+        isFocused && "border-primary/35 ring-4 ring-primary/10",
       )}
     >
       <div className="space-y-2">
@@ -77,9 +76,10 @@ const PromptInput = ({
           id="content"
           {...form.register("content", { onBlur: handleBlur })}
           placeholder="e.g., Build a Netflix-style homepage with a hero banner, movie sections, and responsive cards..."
-          minRows={4}
+          minRows={3}
+          maxRows={8}
           className={cn(
-            "pt-4 resize-none border-none w-full outline-none bg-transparent",
+            "w-full resize-none border-none bg-transparent pt-3 text-sm leading-6 outline-none placeholder:text-muted-foreground/70",
           )}
           onFocus={handleFocus}
           disabled={isPending}
@@ -91,8 +91,8 @@ const PromptInput = ({
           }}
         />
 
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 border-t border-border/60 pt-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
             <ModelSelector
               value={selectedModel}
               onChange={setSelectedModel}
@@ -105,7 +105,7 @@ const PromptInput = ({
 
           <Button
             className={cn(
-              "size-8 rounded-full",
+              "size-9 rounded-full shadow-sm",
               isPending && "bg-muted-foreground border",
             )}
             disabled={isPending}

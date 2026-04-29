@@ -25,28 +25,29 @@ export default function Page() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center w-full p-4">
+    <div className="flex w-full flex-col items-center px-4 pb-6 pt-4 sm:px-6 sm:pt-5">
       <ProjectHistory />
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-6xl">
         <section className="flex flex-col items-center">
-          <div className="flex flex-col items-center">
+          <div className="mb-2 flex h-14 items-center justify-center sm:h-16">
             <Image
               src="/logo_large.svg"
               alt="Logo"
-              width={400}
-              height={400}
-              className="invert dark:invert-0 md:block hidden"
+              width={172}
+              height={172}
+              priority
+              className="hidden max-h-16 w-auto invert dark:invert-0 sm:block"
             />
           </div>
-          <h1 className="text-4xl md:text-6xl text-center font-bold">
-            Build something with❤️
+          <h1 className="text-center text-3xl font-semibold tracking-normal text-foreground md:text-5xl">
+            What do you want to build?
           </h1>
+          <p className="mt-2 max-w-2xl text-center text-sm leading-6 text-muted-foreground md:text-base">
+            Describe an app, pick a model, and Promptly will turn it into a live
+            workspace you can preview, edit, and iterate on.
+          </p>
 
-          {/* <p className="text-center text-muted-foreground text-lg md:text-xl">
-            Create and deploy AI agents with ease
-          </p> */}
-
-          <div className="max-w-5xl w-full flex flex-col items-center mt-10">
+          <div className="mt-5 flex w-full max-w-5xl flex-col items-center">
             <ProjectForm onSubmitMessage={handleSubmit} />
           </div>
         </section>

@@ -4,10 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@import "tailwindcss";
-
-@custom-variant dark (&:is(.dark *));
-
 :root {
   --background: oklch(0.9821 0 0);
   --foreground: oklch(0.2435 0 0);
@@ -226,17 +222,11 @@
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
   }
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+  }
+  ::selection {
+    @apply bg-primary/20 text-foreground;
   }
 }
 
@@ -258,4 +248,12 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@utility app-surface {
+  @apply border border-border/70 bg-card/80 shadow-sm backdrop-blur-xl;
+}
+
+@utility soft-focus {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0;
 }

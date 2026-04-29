@@ -2,19 +2,28 @@
 
 import { Button } from "@/components/ui/button";
 import { CodeView } from "@/components/project/code-view";
-import { FileSystemTree, WebContainer, WebContainerProcess } from "@webcontainer/api";
+import {
+  FileSystemTree,
+  WebContainer,
+  WebContainerProcess,
+} from "@webcontainer/api";
 import { applyPatchesToTree } from "@/modules/helpers/normalize-tree";
 import { downloadZip } from "@/modules/helpers/build-zip";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import PromptInput from "@/components/project/prompt-input";
 import {
+  Code2,
   Download,
   ExternalLink,
   FileEdit,
+  Globe2,
   Loader2,
+  MessageSquareText,
+  Monitor,
   RotateCw,
   Sparkles,
+  Terminal as TerminalIcon,
   Trash2,
 } from "lucide-react";
 import ChatWindow from "@/components/project/chat";
@@ -22,6 +31,11 @@ import { toast } from "sonner";
 import { getWebContainer } from "@/modules/helpers/web-container";
 import { useCompletion } from "@ai-sdk/react";
 import type { AIModelId } from "@/lib/ai-models";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 const XTerminal = dynamic(() => import("@/components/project/terminal"), {
   ssr: false,
@@ -48,6 +62,24 @@ const extractJson = (text: string) => {
   return text;
 };
 
+const useIsDesktop = () => {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const handleChange = () => setIsDesktop(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, []);
+
+  return isDesktop;
+};
+
 const ProjectView = ({
   projectId,
   projectName,
@@ -69,6 +101,7 @@ const ProjectView = ({
   const [fileOperations, setFileOperations] = useState<
     { type: string; path: string }[]
   >([]);
+  const isDesktop = useIsDesktop();
 
   const selectedModelRef = useRef<AIModelId>(initialModel);
 
@@ -90,7 +123,9 @@ const ProjectView = ({
         const updatedFiles = applyPatchesToTree(files, patches);
 
         const formattedSummary = Array.isArray(summary)
-          ? summary.map((item, index) => `${index + 1}. ${String(item)}`).join("\n")
+          ? summary
+              .map((item, index) => `${index + 1}. ${String(item)}`)
+              .join("\n")
           : String(summary ?? "");
 
         const res = await fetch("/api/messages/addmessages", {
@@ -255,7 +290,7 @@ const ProjectView = ({
           currentPath += (currentPath ? "/" : "") + parts[i];
           try {
             await webcontainer.fs.mkdir(currentPath, { recursive: true });
-          } catch (e) {
+          } catch {
             // ignore
           }
         }
@@ -313,284 +348,337 @@ const ProjectView = ({
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center">
-      <div className="grid grid-cols-3 gap-2 px-10 justify-center h-[90vh] w-full">
-        <div className="flex flex-col w-full h-full border border-primary rounded-md overflow-hidden">
-          <div className="flex flex-col gap-2 w-full flex-1 min-h-0">
-            <div className="flex items-center gap-2 p-2 border-b border-primary bg-accent">
-              <Button
-                variant={activeTab1 === "chat" ? "primary" : "outline"}
-                size="sm"
-                onClick={() => setActiveTab1("chat")}
-              >
-                Chat
-              </Button>
-              <Button
-                variant={activeTab1 === "terminal" ? "primary" : "outline"}
-                size="sm"
-                onClick={() => setActiveTab1("terminal")}
-              >
-                Terminal
-              </Button>
-            </div>
-            <div className="relative w-full h-full">
-              <div
-                className="absolute inset-0"
-                style={{ display: activeTab1 === "chat" ? "block" : "none" }}
-              >
-                <ChatWindow
-                  projectId={projectId}
-                  messages={messages}
-                  setMessages={setMessages}
-                  onMessagesLoaded={handleMessagesLoaded}
-                  isProcessing={isLoading || isProcessing}
-                  status={currentStatus}
-                />
-              </div>
-
-              <div
-                className="absolute inset-0"
-                style={{
-                  display: activeTab1 === "terminal" ? "block" : "none",
-                }}
-              >
-                <XTerminal process={process} />
-              </div>
-            </div>
+  const leftPanel = (
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card/85 shadow-sm backdrop-blur-xl">
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
+        <div className="flex items-center justify-between border-b border-border/70 bg-muted/35 p-2">
+          <div className="flex rounded-lg border border-border/70 bg-background/70 p-1 shadow-sm">
+            <Button
+              variant={activeTab1 === "chat" ? "primary" : "ghost"}
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setActiveTab1("chat")}
+            >
+              <MessageSquareText className="h-3.5 w-3.5" />
+              Chat
+            </Button>
+            <Button
+              variant={activeTab1 === "terminal" ? "primary" : "ghost"}
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setActiveTab1("terminal")}
+            >
+              <TerminalIcon className="h-3.5 w-3.5" />
+              Terminal
+            </Button>
+          </div>
+          <span className="hidden truncate px-2 text-xs text-muted-foreground sm:block">
+            {projectName}
+          </span>
+        </div>
+        <div className="relative min-h-0 w-full flex-1">
+          <div
+            className="absolute inset-0"
+            style={{ display: activeTab1 === "chat" ? "block" : "none" }}
+          >
+            <ChatWindow
+              projectId={projectId}
+              messages={messages}
+              setMessages={setMessages}
+              onMessagesLoaded={handleMessagesLoaded}
+              isProcessing={isLoading || isProcessing}
+              status={currentStatus}
+            />
           </div>
 
-          <div className="shrink-0 flex flex-col items-center justify-center p-4">
-            <PromptInput
-              onSubmitMessage={handleClick}
-              initialModel={initialModel}
-            />
+          <div
+            className="absolute inset-0"
+            style={{
+              display: activeTab1 === "terminal" ? "block" : "none",
+            }}
+          >
+            <XTerminal process={process} />
+          </div>
+        </div>
+      </div>
+
+      <div className="shrink-0 border-t border-border/70 bg-background/45 p-3">
+        <PromptInput
+          onSubmitMessage={handleClick}
+          initialModel={initialModel}
+        />
+      </div>
+    </div>
+  );
+
+  const workspacePanel =
+    !isProcessing && !isLoading ? (
+      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card/85 shadow-sm backdrop-blur-xl">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border/70 bg-muted/35 p-2">
+          <div className="flex rounded-lg border border-border/70 bg-background/70 p-1 shadow-sm">
+            <Button
+              variant={activeTab2 === "preview" ? "primary" : "ghost"}
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setActiveTab2("preview")}
+            >
+              <Monitor className="h-3.5 w-3.5" />
+              Preview
+            </Button>
+            <Button
+              variant={activeTab2 === "code" ? "primary" : "ghost"}
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setActiveTab2("code")}
+            >
+              <Code2 className="h-3.5 w-3.5" />
+              Code
+            </Button>
+          </div>
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => {
+                if (devServerUrl && iframeRef.current?.src) {
+                  iframeRef.current.src = devServerUrl;
+                  setCurrentUrl(devServerUrl);
+                }
+              }}
+              title="Refresh"
+            >
+              <RotateCw className="h-4 w-4" />
+              <span className="sr-only">Refresh preview</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => {
+                if (devServerUrl) window.open(devServerUrl, "_blank");
+              }}
+              title="Open in new tab"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span className="sr-only">Open preview in new tab</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-border/70 bg-background/70"
+              onClick={() => {
+                downloadZip(files);
+              }}
+              title="Download project"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Download</span>
+            </Button>
+          </div>
+        </div>
+        <div className="relative min-h-0 flex-1">
+          <div
+            className="absolute inset-0 flex flex-col"
+            style={{ display: activeTab2 === "preview" ? "flex" : "none" }}
+          >
+            {devServerUrl && (
+              <div className="flex shrink-0 items-center gap-2 border-b border-border/70 bg-background/45 px-3 py-2">
+                <div className="flex h-8 flex-1 items-center gap-2 rounded-lg border border-input bg-background/80 px-2.5 shadow-sm focus-within:ring-2 focus-within:ring-primary/20">
+                  <Globe2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <input
+                    type="text"
+                    className="w-full border-none bg-transparent font-mono text-xs text-muted-foreground outline-none focus:text-foreground"
+                    value={currentUrl}
+                    onChange={(e) => setCurrentUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && iframeRef.current) {
+                        iframeRef.current.src = currentUrl;
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            {devServerUrl && (
+              <iframe
+                ref={iframeRef}
+                src={devServerUrl}
+                className="w-full flex-1 border-none bg-white"
+              />
+            )}
+            {!devServerUrl && (
+              <div className="flex h-full flex-col items-center justify-center gap-4 bg-background/30">
+                <div className="relative">
+                  <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-primary" />
+                </div>
+                <div className="flex flex-col items-center gap-1.5">
+                  <p className="animate-pulse text-sm font-medium text-foreground">
+                    Starting dev server...
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Installing dependencies & booting up
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div
+            className="absolute inset-0"
+            style={{ display: activeTab2 === "code" ? "block" : "none" }}
+          >
+            <CodeView files={files} onFileChange={handleFileChange} />
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card/85 shadow-sm backdrop-blur-xl">
+        <div className="flex items-center gap-3 border-b border-border/70 bg-muted/35 p-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground">
+              {currentStatus || "Generating..."}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Applying changes to your project workspace
+            </p>
           </div>
         </div>
 
-        {!isProcessing && !isLoading && (
-          <div className="flex flex-col col-span-2 w-full h-full border border-primary rounded-md overflow-hidden">
-            <div className="flex items-center gap-2 p-2 border-b border-primary bg-accent">
-              <Button
-                variant={activeTab2 === "preview" ? "primary" : "outline"}
-                size="sm"
-                onClick={() => setActiveTab2("preview")}
-              >
-                Preview
-              </Button>
-              <Button
-                variant={activeTab2 === "code" ? "primary" : "outline"}
-                size="sm"
-                onClick={() => setActiveTab2("code")}
-              >
-                Code
-              </Button>
-              <div className="flex items-center gap-1 ml-auto">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (devServerUrl && iframeRef.current?.src) {
-                      iframeRef.current.src = devServerUrl;
-                      setCurrentUrl(devServerUrl);
-                    }
-                  }}
-                  title="Refresh"
-                >
-                  <RotateCw className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (devServerUrl) window.open(devServerUrl, "_blank");
-                  }}
-                  title="Open in new tab"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    downloadZip(files);
-                  }}
-                >
-                  <Download className="w-4 h-4 mr-1" />
-                  Download
-                </Button>
-              </div>
-            </div>
-            <div className="flex-1 min-h-0 relative">
-              <div
-                className="absolute inset-0 flex flex-col"
-                style={{ display: activeTab2 === "preview" ? "flex" : "none" }}
-              >
-                {devServerUrl && (
-                  <div className="flex items-center px-2 py-1.5 border-b border-border bg-muted/30 gap-2 shrink-0">
-                    <div className="flex-1 flex items-center bg-background border border-input rounded-md px-2.5 h-8 focus-within:ring-1 focus-within:ring-primary shadow-sm">
-                      <input
-                        type="text"
-                        className="w-full text-xs font-mono bg-transparent border-none outline-none text-muted-foreground focus:text-foreground"
-                        value={currentUrl}
-                        onChange={(e) => setCurrentUrl(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            if (iframeRef.current)
-                              iframeRef.current.src = currentUrl;
-                          }
-                        }}
-                      />
-                    </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="mx-auto max-w-xl">
+            {fileOperations.length === 0 && (
+              <div className="flex flex-col items-center justify-center gap-4 py-20">
+                <div className="relative">
+                  <div className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-xl border border-primary/30 bg-primary/10">
+                    <Sparkles className="h-5 w-5 animate-pulse text-primary" />
                   </div>
-                )}
-                {devServerUrl && (
-                  <iframe
-                    ref={iframeRef}
-                    src={devServerUrl}
-                    className="flex-1 w-full border-none bg-white"
-                  />
-                )}
-                {!devServerUrl && (
-                  <div className="flex flex-col items-center justify-center h-full gap-4">
-                    <div className="relative">
-                      <div className="w-10 h-10 rounded-full border-2 border-muted-foreground/20 border-t-primary animate-spin" />
-                    </div>
-                    <div className="flex flex-col items-center gap-1.5">
-                      <p className="text-sm font-medium text-foreground animate-pulse">
-                        Starting dev server...
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Installing dependencies & booting up
-                      </p>
-                    </div>
-                  </div>
-                )}
+                </div>
+                <div className="space-y-1 text-center">
+                  <p className="text-sm font-medium text-foreground">
+                    Analyzing your request
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    The AI is planning the changes...
+                  </p>
+                </div>
               </div>
-              <div
-                className="absolute inset-0"
-                style={{ display: activeTab2 === "code" ? "block" : "none" }}
-              >
-                <CodeView files={files} onFileChange={handleFileChange} />
-              </div>
-            </div>
-          </div>
-        )}
-        {(isLoading || isProcessing) && (
-          <div className="flex flex-col col-span-2 w-full h-full border border-primary rounded-md overflow-hidden bg-background">
-            <div className="flex items-center gap-2 p-3 border-b border-border bg-accent">
-              <Loader2 className="w-4 h-4 animate-spin text-primary" />
-              <span className="text-sm font-medium text-foreground">
-                {currentStatus || "Generating..."}
-              </span>
-            </div>
+            )}
 
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="max-w-lg mx-auto">
-                {fileOperations.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <div className="relative">
-                      <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-                      <div className="relative w-12 h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+            {fileOperations.length > 0 && (
+              <div className="space-y-1">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    File Operations
+                  </span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                {fileOperations.map((op, idx) => {
+                  const isLast = idx === fileOperations.length - 1;
+                  const isWrite = op.type === "write";
+
+                  return (
+                    <div
+                      key={`${op.path}-${idx}`}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-500"
+                      style={{
+                        animation: `fadeSlideIn 0.4s ease-out ${idx * 0.05}s both`,
+                        backgroundColor: isLast
+                          ? "var(--accent)"
+                          : "transparent",
+                      }}
+                    >
+                      <div
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-300 ${
+                          isLast
+                            ? isWrite
+                              ? "bg-primary/15 text-primary"
+                              : "bg-destructive/15 text-destructive"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {isWrite ? (
+                          <FileEdit className="h-3.5 w-3.5" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
                       </div>
-                    </div>
-                    <div className="text-center space-y-1">
-                      <p className="text-sm font-medium text-foreground">
-                        Analyzing your request
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        The AI is planning the changes...
-                      </p>
-                    </div>
-                  </div>
-                )}
 
-                {fileOperations.length > 0 && (
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="h-px flex-1 bg-border" />
-                      <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                        File Operations
-                      </span>
-                      <div className="h-px flex-1 bg-border" />
-                    </div>
-
-                    {fileOperations.map((op, idx) => {
-                      const isLast = idx === fileOperations.length - 1;
-                      const isWrite = op.type === "write";
-
-                      return (
-                        <div
-                          key={`${op.path}-${idx}`}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-500"
-                          style={{
-                            animation: `fadeSlideIn 0.4s ease-out ${idx * 0.05}s both`,
-                            backgroundColor: isLast
-                              ? "var(--accent)"
-                              : "transparent",
-                          }}
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`truncate font-mono text-xs ${
+                            isLast
+                              ? "font-medium text-foreground"
+                              : "text-muted-foreground"
+                          }`}
                         >
-                          <div
-                            className={`shrink-0 w-7 h-7 rounded-md flex items-center justify-center transition-colors duration-300 ${
-                              isLast
-                                ? isWrite
-                                  ? "bg-primary/15 text-primary"
-                                  : "bg-destructive/15 text-destructive"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {isWrite ? (
-                              <FileEdit className="w-3.5 h-3.5" />
-                            ) : (
-                              <Trash2 className="w-3.5 h-3.5" />
-                            )}
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <p
-                              className={`text-xs font-mono truncate ${
-                                isLast
-                                  ? "text-foreground font-medium"
-                                  : "text-muted-foreground"
-                              }`}
-                            >
-                              {op.path}
-                            </p>
-                          </div>
-
-                          <div className="shrink-0">
-                            {isLast && isLoading ? (
-                              <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
-                            ) : (
-                              <div className="w-3.5 h-3.5 rounded-full bg-primary/20 flex items-center justify-center">
-                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {isLoading && (
-                      <div className="flex items-center gap-2 px-3 pt-3">
-                        <div className="flex gap-1">
-                          <span className="w-1 h-1 rounded-full bg-primary/40 animate-bounce [animation-delay:-0.3s]" />
-                          <span className="w-1 h-1 rounded-full bg-primary/40 animate-bounce [animation-delay:-0.15s]" />
-                          <span className="w-1 h-1 rounded-full bg-primary/40 animate-bounce" />
-                        </div>
-                        <span className="text-[11px] text-muted-foreground">
-                          Writing file contents...
-                        </span>
+                          {op.path}
+                        </p>
                       </div>
-                    )}
+
+                      <div className="shrink-0">
+                        {isLast && isLoading ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                        ) : (
+                          <div className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary/20">
+                            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {isLoading && (
+                  <div className="flex items-center gap-2 px-3 pt-3">
+                    <div className="flex gap-1">
+                      <span className="h-1 w-1 animate-bounce rounded-full bg-primary/40 [animation-delay:-0.3s]" />
+                      <span className="h-1 w-1 animate-bounce rounded-full bg-primary/40 [animation-delay:-0.15s]" />
+                      <span className="h-1 w-1 animate-bounce rounded-full bg-primary/40" />
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">
+                      Writing file contents...
+                    </span>
                   </div>
                 )}
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
+    );
+
+  return (
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 flex-col px-3 pb-4 sm:px-5 lg:px-6">
+      {isDesktop ? (
+        <ResizablePanelGroup
+          autoSaveId="promptly-project-main-layout"
+          className="h-full w-full"
+          orientation="horizontal"
+        >
+          <ResizablePanel
+            id="project-sidebar"
+            defaultSize="32%"
+            minSize="320px"
+            maxSize="660px"
+            groupResizeBehavior="preserve-pixel-size"
+          >
+            {leftPanel}
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel id="project-workspace" minSize="420px">
+            {workspacePanel}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        <div className="grid h-full w-full grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
+          {leftPanel}
+          {workspacePanel}
+        </div>
+      )}
     </div>
   );
 };

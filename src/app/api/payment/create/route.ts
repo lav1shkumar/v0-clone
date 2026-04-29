@@ -35,6 +35,13 @@ export async function POST(req: Request) {
       return new NextResponse("User not found", { status: 404 });
     }
 
+    if (user.tier === tier) {
+      return NextResponse.json(
+        { success: false, error: "You are already on this plan" },
+        { status: 400 },
+      );
+    }
+
     const order = await razorpay.orders.create({
       amount: amount * 100,
       currency: "INR",

@@ -3,6 +3,7 @@
 import db from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { TIER_DAILY_LIMITS } from "@/lib/utils";
+import type { Prisma } from "@prisma/client";
 
 export const handleSignUp = async () => {
   try {
@@ -84,9 +85,9 @@ export const getUser = async () => {
 
     if (dbUser) {
       const now = new Date();
-      let updates: any = {};
+      const updates: Prisma.UserUpdateInput = {};
       let needsUpdate = false;
-      let currentTier = dbUser.tier;
+      let currentTier = dbUser.tier as keyof typeof TIER_DAILY_LIMITS;
 
       // 1. Check if plan has expired
       if (
@@ -116,7 +117,8 @@ export const getUser = async () => {
       }
 
       // 3. Check if 24 hours passed since last daily refresh
-      const lastRefresh = updates.lastTokenRefresh || dbUser.lastTokenRefresh;
+      const lastRefresh =
+        "lastTokenRefresh" in updates ? now : dbUser.lastTokenRefresh;
       const hoursSinceRefresh =
         (now.getTime() - lastRefresh.getTime()) / (1000 * 60 * 60);
 
