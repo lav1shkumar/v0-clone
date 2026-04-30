@@ -1,11 +1,31 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Sparkles, Zap, Cpu } from "lucide-react";
+import type { ElementType } from "react";
+import { useState } from "react";
+import { Check, ChevronDown, Cpu, Sparkles, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AI_MODELS, type AIModelId } from "@/lib/ai-models";
+import {
+  AI_MODEL_PROVIDERS,
+  getModelWithProvider,
+  type AIModelId,
+} from "@/lib/ai-models";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-const ICON_MAP: Record<string, React.ElementType> = {
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+
+const ICON_MAP: Record<string, ElementType> = {
   "Pro+": Sparkles,
   Pro: Sparkles,
   Lite: Zap,
@@ -19,6 +39,8 @@ const BADGE_COLORS: Record<string, string> = {
   Flash: "bg-amber-500/15 text-amber-400 border-amber-500/30",
 };
 
+const MODEL_PROVIDER_ENTRIES = Object.entries(AI_MODEL_PROVIDERS);
+
 interface ModelSelectorProps {
   value: AIModelId;
   onChange: (model: AIModelId) => void;
@@ -27,126 +49,133 @@ interface ModelSelectorProps {
 
 const ModelSelector = ({ value, onChange, disabled }: ModelSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedModel = AI_MODELS.find((m) => m.id === value) ?? AI_MODELS[0];
+  const { model: selectedModel, providerLabel: selectedProviderLabel } =
+    getModelWithProvider(value);
   const SelectedIcon = ICON_MAP[selectedModel.badge] ?? Sparkles;
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
-    <div ref={dropdownRef} className="relative">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium shadow-sm",
-          "border border-border/70 bg-background/70 hover:bg-accent/60 transition-all duration-200",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          isOpen && "ring-2 ring-primary/20 border-primary/30",
-        )}
-      >
-        <SelectedIcon className="w-3.5 h-3.5 text-primary" />
-        <span className="text-foreground">{selectedModel.name}</span>
-        <ChevronDown
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
           className={cn(
-            "w-3 h-3 text-muted-foreground transition-transform duration-200",
-            isOpen && "rotate-180",
-          )}
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          className={cn(
-            "absolute bottom-full mb-2 left-0 z-50 min-w-[220px]",
-            "rounded-xl border border-border/70 bg-popover/95 backdrop-blur-xl shadow-xl",
-            "animate-in fade-in slide-in-from-bottom-2 duration-200",
+            "flex max-w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium shadow-sm",
+            "border border-border/70 bg-background/70 transition-all duration-200 hover:bg-accent/60",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+            isOpen && "border-primary/30 ring-2 ring-primary/20",
           )}
         >
-          <div className="p-1">
-            <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Select Model
-            </p>
-            {AI_MODELS.map((model) => {
-              const Icon = ICON_MAP[model.badge] ?? Sparkles;
-              const isSelected = model.id === value;
+          <SelectedIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span className="min-w-0 truncate text-foreground">
+            <span className="text-muted-foreground">
+              {selectedProviderLabel}
+            </span>
+            <span className="mx-1 text-muted-foreground/50">/</span>
+            {selectedModel.name}
+          </span>
+          <ChevronDown
+            className={cn(
+              "h-3 w-3 shrink-0 text-muted-foreground transition-transform duration-200",
+              isOpen && "rotate-180",
+            )}
+          />
+        </button>
+      </DropdownMenuTrigger>
 
-              return (
-                <button
-                  key={model.id}
-                  type="button"
-                  onClick={() => {
-                    onChange(model.id as AIModelId);
-                    setIsOpen(false);
-                  }}
-                  className={cn(
-                    "mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left",
-                    "transition-all duration-150",
-                    isSelected
-                      ? "bg-primary/10 border border-primary/20"
-                      : "hover:bg-accent/60 border border-transparent",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "shrink-0 w-6 h-6 rounded-md flex items-center justify-center",
-                      isSelected
-                        ? "bg-primary/15 text-primary"
-                        : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    <Icon className="w-3 h-3" />
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        sideOffset={8}
+        className="w-auto min-w-40 max-w-[calc(100vw-2rem)] overflow-visible border-border/70 bg-popover/95 p-1.5 shadow-xl backdrop-blur-xl"
+      >
+        <DropdownMenuLabel className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider">
+          Select Model
+        </DropdownMenuLabel>
+
+        <NavigationMenu
+          viewport={false}
+          orientation="vertical"
+          className="w-40 max-w-none flex-none items-stretch justify-start"
+        >
+          <NavigationMenuList className="w-full flex-col items-stretch justify-start gap-1">
+            {MODEL_PROVIDER_ENTRIES.map(([providerKey, provider]) => (
+              <NavigationMenuItem key={providerKey} className="w-full">
+                <NavigationMenuTrigger className="h-auto w-full justify-between px-2 py-2 text-xs data-open:bg-accent data-popup-open:bg-accent [&_svg]:-rotate-90">
+                  <span className="min-w-0 truncate">{provider.label}</span>
+                </NavigationMenuTrigger>
+                <NavigationMenuContent className="!absolute !left-0 !top-full z-50 !mt-1.5 w-[min(calc(100vw-2rem),18rem)] border border-border/70 bg-popover/95 p-1.5 shadow-xl backdrop-blur-xl sm:!left-full sm:!top-0 sm:!mt-0 sm:ml-2">
+                  <div className="grid gap-1">
+                    {provider.models.map((model) => {
+                      const Icon = ICON_MAP[model.badge] ?? Sparkles;
+                      const isSelected = model.id === value;
+
+                      return (
+                        <NavigationMenuLink asChild key={model.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onChange(model.id);
+                              setIsOpen(false);
+                            }}
+                            className={cn(
+                              "group/model flex w-full items-center gap-2.5 rounded-md border px-2 py-2 text-left transition-all duration-200",
+                              isSelected
+                                ? "border-primary/25 bg-primary/10 text-foreground"
+                                : "border-transparent hover:border-border/70 hover:bg-accent/70 focus:bg-accent/70",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "flex size-7 shrink-0 items-center justify-center rounded-md transition-colors duration-200",
+                                isSelected
+                                  ? "bg-primary/15 text-primary"
+                                  : "bg-muted text-muted-foreground group-hover/model:text-foreground",
+                              )}
+                            >
+                              <Icon className="size-3.5" />
+                            </span>
+
+                            <span className="min-w-0 flex-1">
+                              <span className="flex min-w-0 items-center gap-1.5">
+                                <span className="truncate text-xs font-medium">
+                                  {model.name}
+                                </span>
+                                <span
+                                  className={cn(
+                                    "shrink-0 rounded border px-1 py-0.5 text-[9px] font-semibold leading-none",
+                                    BADGE_COLORS[model.badge],
+                                  )}
+                                >
+                                  {model.badge}
+                                </span>
+                              </span>
+                              <span className="mt-0.5 block truncate text-[10px] leading-tight text-muted-foreground">
+                                {model.description} · {model.tokenCost} tokens
+                              </span>
+                            </span>
+
+                            <Check
+                              className={cn(
+                                "size-3.5 shrink-0 text-primary transition-all duration-200",
+                                isSelected
+                                  ? "scale-100 opacity-100"
+                                  : "scale-75 opacity-0",
+                              )}
+                            />
+                          </button>
+                        </NavigationMenuLink>
+                      );
+                    })}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={cn(
-                          "text-xs font-medium",
-                          isSelected
-                            ? "text-foreground"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {model.name}
-                      </span>
-                      <span
-                        className={cn(
-                          "text-[9px] font-semibold px-1 py-0.5 rounded border leading-none",
-                          BADGE_COLORS[model.badge],
-                        )}
-                      >
-                        {model.badge}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground/70 mt-0.5 leading-tight">
-                      <span className="text-primary/70 font-medium">
-                        {model.tokenCost} tokens/req
-                      </span>
-                    </p>
-                  </div>
-                  {isSelected && (
-                    <div className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary ml-1" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

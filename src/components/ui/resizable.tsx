@@ -84,7 +84,7 @@ function ResizableHandle({
       className={cn(
         "relative flex w-3 shrink-0 cursor-col-resize items-center justify-center outline-none transition-colors",
         "after:absolute after:inset-y-3 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-border",
-        "hover:after:bg-primary/60 focus-visible:ring-2 focus-visible:ring-ring/50",
+        "hover:after:bg-primary/60 focus-visible:after:bg-primary/70",
         className,
       )}
       {...props}

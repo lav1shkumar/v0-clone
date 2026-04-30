@@ -349,7 +349,7 @@ const ProjectView = ({
   };
 
   const leftPanel = (
-    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card/85 shadow-sm backdrop-blur-xl">
+    <div className="flex h-full min-h-0 w-full flex-col border border-border/70 overflow-hidden rounded-xl bg-card/85 shadow-sm backdrop-blur-xl">
       <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
         <div className="flex items-center justify-between border-b border-border/70 bg-muted/35 p-2">
           <div className="flex rounded-lg border border-border/70 bg-background/70 p-1 shadow-sm">
@@ -413,7 +413,7 @@ const ProjectView = ({
 
   const workspacePanel =
     !isProcessing && !isLoading ? (
-      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card/85 shadow-sm backdrop-blur-xl">
+      <div className="flex h-full min-h-0 w-full flex-col border border-border/70 overflow-hidden rounded-xl bg-card/85 shadow-sm backdrop-blur-xl">
         <div className="flex flex-wrap items-center gap-2 border-b border-border/70 bg-muted/35 p-2">
           <div className="flex rounded-lg border border-border/70 bg-background/70 p-1 shadow-sm">
             <Button
@@ -674,7 +674,7 @@ const ProjectView = ({
           </ResizablePanel>
         </ResizablePanelGroup>
       ) : (
-        <div className="grid h-full w-full grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
+        <div className="grid h-full w-full gap-3">
           {leftPanel}
           {workspacePanel}
         </div>

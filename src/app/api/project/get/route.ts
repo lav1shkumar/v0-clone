@@ -2,27 +2,27 @@ import db from "@/lib/db";
 import { getUser } from "@/modules/auth/actions";
 
 export async function GET(req: Request) {
-    const { user } = await getUser();
+  const { user } = await getUser();
 
-    if(!user?.id){
-        return Response.json({
-            success: false,
-            message: "User not found",
-        });
-    }
-
-    const res = await db.user.findUnique({
-        where: {
-            id: user.id,
-        },
-        include: {
-            projects: {
-                take: 10,
-                orderBy: {
-                    updatedAt: 'desc',
-                },
-            },
-        },
+  if (!user?.id) {
+    return Response.json({
+      success: false,
+      message: "User not found",
     });
-    return Response.json({success: true, projects: res?.projects});
+  }
+
+  const res = await db.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    include: {
+      projects: {
+        take: 25,
+        orderBy: {
+          updatedAt: "desc",
+        },
+      },
+    },
+  });
+  return Response.json({ success: true, projects: res?.projects });
 }

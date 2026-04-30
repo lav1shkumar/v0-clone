@@ -88,7 +88,7 @@ const ProjectHistory = () => {
   };
 
   const openProject = (projectId: string) => {
-    router.push(`/project/${projectId}`);
+    window.location.href = `/project/${projectId}`;
   };
 
   const handleDelete = async (event: React.MouseEvent, projectId: string) => {
@@ -114,7 +114,9 @@ const ProjectHistory = () => {
       const data = await res.json();
 
       if (data.success) {
-        setProjects((prev) => prev.filter((project) => project.id !== projectId));
+        setProjects((prev) =>
+          prev.filter((project) => project.id !== projectId),
+        );
         toast.success("Project deleted successfully");
       } else {
         toast.error(data.error || "Failed to delete project");
